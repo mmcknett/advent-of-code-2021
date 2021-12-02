@@ -8,13 +8,26 @@ const rl = readline.createInterface({
 let x = 0;
 let depth = 0;
 
+let correctedX = 0;
+let correctedDepth = 0;
+let aim = 0;
+
 rl.on('line', function(line) {
   const [command, value] = line.split(" ");
   const num = Number(value);
   switch(command) {
-    case 'forward': x += num; break;
-    case 'down': depth += num; break;
-    case 'up': depth -= Math.min(depth, num); break;
+    case 'forward': {
+      x += num;
+      break;
+    }
+    case 'down': {
+      depth += num;
+      break;
+    }
+    case 'up': {
+      depth -= Math.min(depth, num);
+      break;
+    }
     default: throw Error('unknown command');
   }
 });
