@@ -6,7 +6,6 @@ var rl = readline.createInterface({
 });
 
 let increaseCount = 0;
-let previousValue = null;
 const numbers = [];
 
 rl.on('line', function(line) {
@@ -15,6 +14,8 @@ rl.on('line', function(line) {
 })
 
 function countIncreases() {
+  let previousValue = null;
+
   for (number of numbers) {
     let incDecString = "(N/A - no previous measurement)";
     if (previousValue !== null) {
@@ -23,8 +24,12 @@ function countIncreases() {
       incDecString = increased ? "(increased)" : "(decreased)"
     }
     previousValue = number;
-    console.log(number, incDecString);
+    // console.log(number, incDecString);
   }
+}
+
+function countTriplesIncreases() {
+  
 }
 
 rl.on('close', function() {
