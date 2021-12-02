@@ -7,19 +7,27 @@ var rl = readline.createInterface({
 
 let increaseCount = 0;
 let previousValue = null;
+const numbers = [];
 
 rl.on('line', function(line) {
   const number = Number(line);
-  let incDecString = "(N/A - no previous measurement)";
-  if (previousValue !== null) {
-    let increased = (number > previousValue)
-    increaseCount += increased ? 1 : 0;
-    incDecString = increased ? "(increased)" : "(decreased)"
-  }
-  previousValue = number;
-  console.log(line, incDecString);
+  numbers.push(number);
 })
 
+function countIncreases() {
+  for (number of numbers) {
+    let incDecString = "(N/A - no previous measurement)";
+    if (previousValue !== null) {
+      let increased = (number > previousValue)
+      increaseCount += increased ? 1 : 0;
+      incDecString = increased ? "(increased)" : "(decreased)"
+    }
+    previousValue = number;
+    console.log(number, incDecString);
+  }
+}
+
 rl.on('close', function() {
+  countIncreases();
   console.log("Number of increases:", increaseCount);
 })
