@@ -28,15 +28,9 @@ impl fmt::Binary for V {
 
 // My code...
 
-// static BITMASK: u16 = 0x0FFF; // 12 bits
-// static START_BIT: u16 = 0x0800;
-
-static BITMASK: u16 = 0x001F; // 5 bits
-static START_BIT: u16 = 0x0010;
-
 fn main() -> io::Result<()> {
-    let input_numbers = read_numbers();
-    let (gamma, epsilon) = gamma_epsilon(&input_numbers);
+    let (bitcount, bitmask, start_bit, input_numbers) = read_numbers();
+    let (gamma, epsilon) = gamma_epsilon(&input_numbers, bitcount, bitmask, start_bit);
 
     println!("Gamma is {}", gamma);
     println!("Epsilon is {}", epsilon);
@@ -45,23 +39,49 @@ fn main() -> io::Result<()> {
 
     // Part 2
     let mut ox_candidates = input_numbers.clone();
-    // for x in &mut input_numbers { let q = x; ox_candidates.push(q.clone()); } // Why is copying so freaking hard in rust...
 
-    let mut current_bit: u16 = START_BIT;
+    let mut current_bit: u16 = start_bit;
     while current_bit > 0 {
-        ox_candidates.retain(|x| x & current_bit > 0);
+        // Use gamma for Oxygen, because gamma's bit at current_bit is
+        // the bit that has the most common bit of all the numbers
+        let (gamma, _) = gamma_epsilon(&ox_candidates, bitcount, bitmask, start_bit);
+
+        ox_candidates.retain(|x| x & current_bit == gamma & current_bit);
         if ox_candidates.len() <= 1 {
             break;
         }
         current_bit >>= 1;
-        println!("{:b}", V(ox_candidates.clone()));
+        // println!("{:b}", V(ox_candidates.clone()));
     }
+
+    let mut co2_candidates = input_numbers.clone();
+
+    let mut current_bit: u16 = start_bit;
+    while current_bit > 0 {
+        // Use epsilon for CO2, because epsilon's bit at current_bit is
+        // the bit that has the least common bit of all the numbers
+        let (_, epsilon) = gamma_epsilon(&co2_candidates, bitcount, bitmask, start_bit);
+
+        co2_candidates.retain(|x| x & current_bit == epsilon & current_bit);
+        if co2_candidates.len() <= 1 {
+            break;
+        }
+        current_bit >>= 1;
+        // println!("{:b}", V(co2_candidates.clone()));
+    }
+
+    println!("Oxygen rating: {:?}", ox_candidates);
+    println!("CO2 rating: {:?}", co2_candidates);
+    println!("Life support rating: {}", ox_candidates[0] as u64 * co2_candidates[0] as u64);
 
     Ok(())
 }
 
-fn read_numbers() -> Vec<u16> {
+fn read_numbers() -> (usize, u16, u16, Vec<u16>) {
     let mut input_numbers = vec![];
+    let mut bitmask = None;
+    let mut start_bit = None;
+    let mut input_size = 0;
 
     // Read in numbers
     loop {
@@ -69,22 +89,32 @@ fn read_numbers() -> Vec<u16> {
         let bytesread = io::stdin().read_line(&mut input).unwrap();
         if bytesread == 0 { break; }
 
-        input_numbers.push(u16::from_str_radix(&input.trim(), 2).unwrap());
+        let trimmed_input = input.trim();
+        input_size = trimmed_input.len();
+
+        if bitmask.is_none() || start_bit.is_none() {
+            let mut bitmask_inner = 0;
+            for _ in 0..input_size {
+                bitmask_inner = (bitmask_inner << 1) + 1;
+            }
+            bitmask = Some(bitmask_inner);
+
+            start_bit = Some(1 << (input_size - 1));
+        }
+
+        input_numbers.push(u16::from_str_radix(trimmed_input, 2).unwrap());
     }
 
-    return input_numbers;
+    return (input_size, bitmask.unwrap(), start_bit.unwrap(), input_numbers);
 }
 
-fn gamma_epsilon(number_list: &Vec<u16>) -> (u16, u16) {
-    // For use with input.txt
-    // let mut bit_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-    // For use with sample.txt
-    let mut bit_counts = [0, 0, 0, 0, 0];
+fn gamma_epsilon(number_list: &Vec<u16>, bitcount: usize, bitmask: u16, start_bit: u16) -> (u16, u16) {
+    let mut bit_counts: Vec<u64> = Vec::with_capacity(bitcount);
+    for _ in 0..bitcount { bit_counts.push(0); }
 
     // Sum up all of the entries in each part of gamma
     for &input in number_list {
-        let mut current_bit: u16 = START_BIT;
+        let mut current_bit: u16 = start_bit;
         for i in 0..bit_counts.len() {
             if current_bit & input > 0 {
                 bit_counts[i] += 1
@@ -93,15 +123,14 @@ fn gamma_epsilon(number_list: &Vec<u16>) -> (u16, u16) {
         }
     }
 
-    println!("bit counts is {:?}", bit_counts);
+    // println!("bit counts is {:?}", bit_counts);
 
-    let run_len = number_list.len() as u16;
-    let normalized_bit_counts = bit_counts.map(|val| (val + run_len / 2) / run_len);
+    let run_len = number_list.len() as u64;
+    let normalized_bit_counts = bit_counts.iter().map(|val| ((val + run_len / 2) / run_len) as u16);
 
-    println!("bit counts normalized is {:?}", normalized_bit_counts);
-
+    // println!("bit counts normalized is {:?}", normalized_bit_counts);
 
     let gamma: u16 = normalized_bit_counts.into_iter().reduce(|accum, val| (accum << 1) + val).unwrap();
-    let epsilon: u16 = !gamma & BITMASK;
+    let epsilon: u16 = !gamma & bitmask;
     return (gamma, epsilon);
 }
