@@ -1,7 +1,8 @@
 use std::io;
 
 fn main() -> io::Result<()> {
-    let mut gammavec = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let mut bit_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let bitmask: u16 = 0b0000111111111111; // 12 bits
     let mut run_len = 0;
 
     // Sum up all of the entries in each part of gamma
@@ -13,32 +14,21 @@ fn main() -> io::Result<()> {
         run_len += 1;
         for (i, c) in input.chars().enumerate() {
             match c.to_digit(10) {
-                Some(1) => gammavec[i] += c.to_digit(10).unwrap(),
+                Some(1) => bit_counts[i] += 1,
                 _ => continue
             }
         }
     }
 
-    for i in 0..gammavec.len() {
-        println!("{}, {}, {}", gammavec[i], run_len/2, run_len);
-        gammavec[i] = (gammavec[i] + (run_len/2)) / run_len;
-    }
+    let normalized_bit_counts = bit_counts.map(|val| (val + run_len / 2) / run_len);
+    let gamma: u16 = normalized_bit_counts.into_iter().reduce(|accum, val| (accum << 1) + val).unwrap();
 
-    let gamma: String = gammavec.iter().map(|c| c.to_string()).collect();
-    println!("You typed: {}", gamma);
+    println!("Gamma is {}", gamma);
 
-    let gamma_int: u16 = u16::from_str_radix(&gamma, 2).unwrap();
-    println!("Gamma is {}", gamma_int);
-
-    // poor man's not operator
-    let epsilonvec = gammavec.map(|digit| if digit == 0 { 1 } else { 0 });
-
-    let epsilonstr: String = epsilonvec.iter().map(|c| c.to_string()).collect();
-    let epsilon: u16 = u16::from_str_radix(&epsilonstr, 2).unwrap();
-    // let epsilon: u8 = !gamma_int;
+    let epsilon: u16 = !gamma & bitmask;
     println!("Epsilon is {}", epsilon);
 
-    println!("Power consumption is {}", gamma_int as u64 * epsilon as u64);
+    println!("Power consumption is {}", gamma as u64 * epsilon as u64);
 
     Ok(())
 }
