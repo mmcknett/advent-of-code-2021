@@ -112,14 +112,19 @@ rl.on('close', function() {
   boards.forEach(board => board.print());
 
   for (const number of numsInput) {
+    let losers = boards.map((b, i) => [b, i]).filter(([b, i]) => !b.isWinner()).map(([b, i]) => i);
+    if (losers.length == 0) {
+      exit();
+    }
+
     console.log("Checking", number);
-    boards.forEach(board => {
+
+    boards.forEach((board, i) => {
       board.mark(number);
-      if (board.isWinner()) {
+      if (board.isWinner() && losers.includes(i)) {
         const boardscore = board.score();
-        console.log("The winning board's unmarked score is:", boardscore);
-        console.log("The final score is:", boardscore * number);
-        exit();
+        console.log(`Board ${i} just won; its score is: ${boardscore}`);
+        console.log(`Board ${i}'s final score is: ${boardscore * number}`);
       }
     });
   }
