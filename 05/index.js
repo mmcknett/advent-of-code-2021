@@ -63,6 +63,13 @@ function drawLine(line, heightmap) {
     for (let x = x1; x <= x2; ++x) {
       heightmap[y1][x] += 1;
     }
+  } else {
+    // Diagonal
+    const xincr = x1 < x2 ? 1 : -1;
+    const yincr = y1 < y2 ? 1 : -1;
+    for (let x = x1, y = y1; x != x2 + xincr, y != y2 + yincr; x += xincr, y += yincr) {
+      heightmap[y][x] += 1;
+    }
   }
 }
 
