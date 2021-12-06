@@ -3,10 +3,11 @@
 #include <string>
 #include <iterator>
 #include <vector>
+#include <numeric>
 using namespace std;
 
 int main() {
-  vector<int> fish;
+  uint64_t fish[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
   const int simulateDays = 256;
 
   while(true) {
@@ -19,30 +20,34 @@ int main() {
       break;
     }
     cout << i << ' ';
-    fish.push_back(i);
+    fish[i]++;
   }
+  cout << endl;
 
   for (int i = 0; i < simulateDays; ++i) {
-    int newFish = 0;
-    for (int f = 0; f < fish.size(); ++f) {
-      if (fish[f] == 0) {
-        ++newFish;
-        fish[f] = 6;
-      } else {
-        fish[f]--;
-      }
+    uint64_t newFish = fish[0];
+    for (int f = 1; f < 9; ++f) {
+      fish[f-1] = fish[f];
     }
-    for (int n = 0; n < newFish; ++n) {
-      fish.push_back(8);
+    fish[8] = newFish;
+    fish[6] += newFish;
+
+    uint64_t fishcount = 0;
+    for (int i = 0; i < 9; ++i) {
+      fishcount += fish[i];
     }
 
-    // ostringstream oss;
-    // copy(begin(fish), end(fish) - 1, ostream_iterator<int>(oss, ","));
-    // oss << fish.back();
-    cout << "After\t" << i + 1 << " days:\t" << /*oss.str()*/ fish.size() << " fish" << endl;
+    ostringstream oss;
+    copy(fish, fish + 8, ostream_iterator<uint64_t>(oss, ","));
+    oss << fish[8];
+    cout << "After\t" << i + 1 << " days:\t" << oss.str() << " " << fishcount << " fish" << endl;
   }
 
-  cout << "After " << simulateDays << " days there are " << fish.size() << " fish." << endl;
+  uint64_t fishcount = 0;
+  for (int i = 0; i < 9; ++i) {
+    fishcount += fish[i];
+  }
+  cout << "After " << simulateDays << " days there are " << fishcount << " fish." << endl;
 
   return 0;
 }
