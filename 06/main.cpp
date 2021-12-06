@@ -6,23 +6,24 @@
 #include <numeric>
 using namespace std;
 
-int main() {
-  uint64_t fish[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-  const int simulateDays = 256;
-
+void readCommaSeparatedValues(uint64_t fish[]) {
   while(true) {
     int i;
     cin >> i;
-    if (cin.peek() == ',') {
-      cin.ignore();
-    }
-    if (cin.eof()) {
-      break;
-    }
+    if (cin.peek() == ',') { cin.ignore(); }
+    if (!cin.good()) { break; }
+
     cout << i << ' ';
     fish[i]++;
   }
   cout << endl;
+}
+
+int main() {
+  uint64_t fish[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  const int simulateDays = 256;
+
+  readCommaSeparatedValues(fish);
 
   for (int i = 0; i < simulateDays; ++i) {
     uint64_t newFish = fish[0];
