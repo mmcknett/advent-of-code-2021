@@ -44,10 +44,7 @@ fn main() {
 
 fn is_pair(open: char, close: char) -> bool {
     match open {
-        '(' => return close == ')',
-        '{' => return close == '}',
-        '<' => return close == '>',
-        '[' => return close == ']',
+        '(' | '[' | '{' | '<' => close == get_match(open),
         _ => panic!("Invalid open character")
     }
 }
