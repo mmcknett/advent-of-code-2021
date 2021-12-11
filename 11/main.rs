@@ -8,7 +8,7 @@ fn main() {
     let mut flashes = 0;
 
     // Part 1
-    for step in 1..=100 {
+    for step in 1..=10000 {
         let mut initial_flashes = vec![];
         // First, increase every energy level
         for y in 0..10 {
@@ -37,6 +37,13 @@ fn main() {
 
         println!("\nAfter step {}:", step);
         print_octos(&octos);
+
+        let all_zero: bool = octos.iter().fold(true, |zero_before, next_row| zero_before &&
+            next_row.iter().all(|&octo| octo == 0)
+        );
+        if all_zero {
+            break;
+        }
     }
 
     print!("\nTotal flahes: {}\n", flashes);
