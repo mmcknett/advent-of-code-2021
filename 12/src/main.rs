@@ -37,14 +37,19 @@ fn main() {
 
     let st = String::from("start");
     let mut visited = vec![&st];
-    let num_paths = count_paths("start", &adjacency, &mut visited);
+    let num_paths = count_paths("start", &adjacency, &mut visited, None);
     match num_paths {
         Some(n) => println!("There are {} paths through the caves.", n),
         None => println!("No paths through the caves.")
     }
 }
 
-fn count_paths<'a>(from: &str, adjacency: &'a AdjacencyList, visited: &mut Vec<&'a String>) -> Option<u32> {
+fn count_paths<'a>(
+    from: &str,
+    adjacency: &'a AdjacencyList,
+    visited: &mut Vec<&'a String>,
+    doubled_str: Option<&str>
+) -> Option<u32> {
     // Look at each node in the adjacency list from where we are.
     // Only count all-lowercase caves as "visited".
     return match adjacency.get(from) {
@@ -52,19 +57,36 @@ fn count_paths<'a>(from: &str, adjacency: &'a AdjacencyList, visited: &mut Vec<&
             let mut count = 0;
             for next in next_list {
                 if next == "end" {
-                    println!("{:?}", visited);
+                    // Enable to see all paths printed out
+                    // println!("{:?}, \"end\"", visited);
                     count += 1;
                 } else {
                     let next_is_small: bool = next.chars().all(|c| c.is_lowercase());
-                    if !visited.contains(&next) || !next_is_small {
+                    let next_was_visited = visited.contains(&next);
+                    // let next_was_double_visited = match doubled_str {
+                    //     Some(s) => s == next,
+                    //     None => false
+                    // };
+                    if !next_was_visited || !next_is_small {
                         visited.push(&next);
-
-                        // println!("Visitng {}", next);
-                        match count_paths(next, adjacency, visited) {
+                        // println!("branch 1 Visitng {}", next);
+                        match count_paths(next, adjacency, visited, doubled_str) {
                             Some(next_count) => count += next_count,
                             None => ()
                         }
-                        
+                        visited.pop();
+                    }
+
+                    // Part 2: if there's no doubled_str and next was visited,
+                    // try using it as the doubled cave.
+                    // TODO: could combine this above as an elseif?
+                    if next_was_visited && next_is_small && doubled_str.is_none() {
+                        visited.push(&next);
+                        // println!("branch 2 Visitng {}", next);
+                        match count_paths(next, adjacency, visited, Some(next)) {
+                            Some(next_count) => count += next_count,
+                            None => ()
+                        }
                         visited.pop();
                     }
                 }
