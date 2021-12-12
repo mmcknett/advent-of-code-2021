@@ -37,7 +37,11 @@ fn main() {
 
     let st = String::from("start");
     let mut visited = vec![&st];
-    let num_paths = count_paths("start", &adjacency, &mut visited, None);
+
+    let run_as_part1 = true;
+    let doubled_str = if run_as_part1 { Some("onlypat1") } else { None };
+
+    let num_paths = count_paths("start", &adjacency, &mut visited, doubled_str);
     match num_paths {
         Some(n) => println!("There are {} paths through the caves.", n),
         None => println!("No paths through the caves.")
@@ -63,32 +67,16 @@ fn count_paths<'a>(
                 } else {
                     let next_is_small: bool = next.chars().all(|c| c.is_lowercase());
                     let next_was_visited = visited.contains(&next);
-                    // let next_was_double_visited = match doubled_str {
-                    //     Some(s) => s == next,
-                    //     None => false
-                    // };
-                    if !next_was_visited || !next_is_small {
-                        visited.push(&next);
-                        // println!("branch 1 Visitng {}", next);
-                        match count_paths(next, adjacency, visited, doubled_str) {
-                            Some(next_count) => count += next_count,
-                            None => ()
-                        }
-                        visited.pop();
-                    }
 
-                    // Part 2: if there's no doubled_str and next was visited,
-                    // try using it as the doubled cave.
-                    // TODO: could combine this above as an elseif?
-                    if next_was_visited && next_is_small && doubled_str.is_none() {
-                        visited.push(&next);
-                        // println!("branch 2 Visitng {}", next);
-                        match count_paths(next, adjacency, visited, Some(next)) {
-                            Some(next_count) => count += next_count,
-                            None => ()
-                        }
-                        visited.pop();
+                    visited.push(&next);
+                    if !next_was_visited || !next_is_small {
+                        count += count_paths(next, adjacency, visited, doubled_str).unwrap_or(0);
+                    } else if doubled_str.is_none() {
+                        // Part 2: if there's no doubled_str and next was visited,
+                        // try using it as the doubled cave.
+                        count += count_paths(next, adjacency, visited, Some(next)).unwrap_or(0);
                     }
+                    visited.pop();
                 }
             }
             Some(count)
