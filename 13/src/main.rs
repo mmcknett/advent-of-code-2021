@@ -1,10 +1,61 @@
 use std::io::{self, BufRead};
 use std::cmp;
-use simple_grid::{Grid, GridIndex};
+use simple_grid::Grid;
 
-type Points = Grid<bool>;
+struct DynGrid<T> {
+  points: Grid<T>,
+  width: usize,
+  height: usize
+}
 
-type Points = [[bool; 1500]; 1500];
+impl<T> DynGrid<T> 
+  where T : Default, T: Copy
+{
+  fn new(width_cap: usize, height_cap: usize) -> DynGrid<T> {
+    DynGrid {
+      points: Grid::new_default(width_cap, height_cap),
+      width: 0,
+      height: 0
+    }
+  }
+
+  fn get_u(&self, (x, y): (usize, usize)) -> T {
+    *self.points.get((x, y)).unwrap()
+  }
+
+  fn mut_u(&mut self, (x, y): (usize, usize)) -> &mut T {
+    self.points.get_mut((x, y)).unwrap()
+  }
+
+  fn set(&mut self, (x, y): (usize, usize), val: T) {
+    self.height = cmp::max(y+1, self.height);
+    self.width = cmp::max(x+1, self.width);
+    
+    if self.height > self.points.height() ||
+       self.width > self.points.width()
+    {
+      panic!("{} x {} is too big!", self.width, self.height);
+    }
+
+    *self.points.get_mut((x, y)).unwrap() = val;
+  }
+
+  fn print(&self, f: fn(T) -> char) {
+    for y in 0..self.height {
+      for x in 0..self.width {
+        print!("{}", f(*self.points.get((x, y)).unwrap()));
+      }
+      print!("\n");
+    }
+    println!("({} x {})", self.width, self.height);
+  }
+
+  // TODO: Implement iterator over all cells, respecting width & height.
+
+  // TODO: Implement iterator over rows
+}
+
+type Pointgrid = DynGrid<bool>;
 
 #[derive(Debug)]
 struct Fold {
@@ -13,9 +64,7 @@ struct Fold {
 }
 
 fn main() {
-  let mut width: usize = 0;
-  let mut height: usize = 0;
-  let mut points: Points = Grid::new_default(1500, 1500);
+  let mut pointgrid: Pointgrid = DynGrid::new(1500, 1500);
   let mut folds = vec![];
 
   for line in io::stdin().lock().lines() {
@@ -42,66 +91,56 @@ fn main() {
       let mut xy = linestr.split(",");
       let x = xy.next().unwrap().parse::<usize>().unwrap();
       let y = xy.next().unwrap().parse::<usize>().unwrap();
-      height = cmp::max(y+1, height);
-      width = cmp::max(x+1, width);
-      
-      if height > 1500 || width > 1500 {
-        panic!("{} x {} is too big!", width, height);
-      }
-
-      *points.get_mut((x, y)).unwrap() = true;
+      pointgrid.set((x, y), true);
     }
   }
 
   // print_points(&points, &width, &height);
   println!("Folds: {:?}", folds);
-  println!("Total dots visible: {}", count(&points, &width, &height));
+  println!("Total dots visible: {}", count(&pointgrid));
 
   println!("Folding...");
+
+  // Uncomment for part 1
+  // fold(&mut pointgrid, &folds[0]);
+
+  // Comment for loop & print for part 1.
   for a_fold in &folds {
-    fold(&mut points, &mut width, &mut height, a_fold);
+    fold(&mut pointgrid, a_fold);
   }
+  print_points(&pointgrid);
   
-  print_points(&points, &width, &height);
-  println!("Total dots visible: {}", count(&points, &width, &height));
+  println!("Total dots visible: {}", count(&pointgrid));
 }
 
-fn print_points(points: &Points, width: &usize, height: &usize) {
-  for y in 0..*height {
-    for x in 0..*width {
-      print!("{}", if *points.get((x, y)).unwrap() { '#' } else { '.' });
-    }
-    print!("\n");
-  }
-  println!("({} x {})", width, height);
+fn print_points(pointgrid: &Pointgrid) {
+  pointgrid.print(|val: bool| if val { '#' } else { '.' });
 }
 
-fn count(points: &Points, width: &usize, height: &usize) -> u32 {
-  return points.clone().subgrid(0, 0, *width, *height).cell_iter().fold(0, |count, val: &bool| count + if *val { 1 } else { 0 });
+fn count(grid: &Pointgrid) -> u32 {
+  return grid.points.clone().subgrid(0, 0, grid.width, grid.height).cell_iter().fold(0, 
+    |count, val: &bool| count + if *val { 1 } else { 0 }
+  );
 }
 
-fn fold(points: &mut Points, width: &mut usize, height: &mut usize, fold: &Fold) {
+fn fold(grid: &mut Pointgrid, fold: &Fold) {
   if fold.vertical {
-    for x in (fold.value + 1)..*width {
-      for y in 0..*height {
-        let reflected_x = 2 * fold.value - x;
-        *points.get_mut((reflected_x, y)).unwrap() =
-          *points.get((x, y)).unwrap() || 
-          *points.get((reflected_x, y)).unwrap();
+    for x in (fold.value + 1)..grid.width {
+      for y in 0..grid.height {
+        let x_refl = 2 * fold.value - x; // Reflect x across fold
+        *grid.mut_u((x_refl, y)) = grid.get_u((x, y)) || grid.get_u((x_refl, y));
       }
     }
 
-    *width = fold.value;
+    grid.width = fold.value;
   } else {
-    for y in (fold.value + 1)..*height {
-      let reflected_y = 2 * fold.value - y;
-      for x in 0..*width {
-        *points.get_mut((x, reflected_y)).unwrap() =
-          *points.get((x, y)).unwrap() || 
-          *points.get((x, reflected_y)).unwrap();
+    for y in (fold.value + 1)..grid.height {
+      let y_refl = 2 * fold.value - y; // Reflect y across fold
+      for x in 0..grid.width {
+        *grid.mut_u((x, y_refl)) = grid.get_u((x, y)) || grid.get_u((x, y_refl));
       }
     }
 
-    *height = fold.value;
+    grid.height = fold.value;
   }
 }
