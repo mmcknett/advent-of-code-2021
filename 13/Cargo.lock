@@ -5,3 +5,12 @@ version = 3
 [[package]]
 name = "aoc-2021-13"
 version = "0.1.0"
+dependencies = [
+ "simple-grid",
+]
+
+[[package]]
+name = "simple-grid"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "249a9d2840ab63972f8e8ec5731ced65872c6b5c8efd833eed7d1f8972dedff2"
