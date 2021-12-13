@@ -52,8 +52,11 @@ fn main() {
   println!("Total dots visible: {}", count(&points, &width, &height));
 
   println!("Folding...");
-  fold(&mut points, &mut width, &mut height, &folds[0]);
-  // print_points(&points, &width, &height);
+  for a_fold in &folds {
+    fold(&mut points, &mut width, &mut height, a_fold);
+  }
+  
+  print_points(&points, &width, &height);
   println!("Total dots visible: {}", count(&points, &width, &height));
 }
 
