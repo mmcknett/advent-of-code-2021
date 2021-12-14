@@ -1,0 +1,6 @@
+NA
+
+NA -> N 0
+NN -> A 1 
+AN -> A 2
+AA -> N 3
