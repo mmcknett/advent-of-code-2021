@@ -1,5 +1,6 @@
 use std::io::{self, BufRead};
 use std::collections::HashMap;
+use cached::proc_macro::cached;
 
 type InsertionRules = HashMap<(char, char), char>;
 
@@ -50,22 +51,19 @@ fn main() {
   // }
 
   // let char_counts = prior_step.chars().fold(HashMap::new(), |mut hash, c| {
-  //   *hash.entry(c).or_insert(0u32) += 1; hash
+  //   *hash.entry(c).or_insert(0u64) += 1; hash
   // });
 
   let start = &prior_step;
+  let char_counts = counts_from_bigram_start(start, 10, &rules);
 
-  counts_from_bigram_start(start, 1, &rules);
-  counts_from_bigram_start(start, 2, &rules);
-  let char_counts = counts_from_bigram_start(start, 3, &rules);
-
-  let max_char: (&char, &u32) = char_counts
+  let max_char: (&char, &u64) = char_counts
     .iter()
     .max_by(|a, b| a.1.cmp(&b.1))
     .map(|(k, v)| (k, v))
     .unwrap();
 
-  let min_char: (&char, &u32) = char_counts
+  let min_char: (&char, &u64) = char_counts
     .iter()
     .min_by(|a, b| a.1.cmp(&b.1))
     .map(|(k, v)| (k, v))
@@ -80,7 +78,7 @@ fn main() {
 fn counts_from_bigram_start(
   start: &str,
   depth: u8,
-  rules: &InsertionRules) -> HashMap<char, u32>
+  rules: &InsertionRules) -> HashMap<char, u64>
 {
   let first_char = start.chars().next().unwrap();
   let mut char_counts = HashMap::from([
@@ -91,16 +89,19 @@ fn counts_from_bigram_start(
   let mut right = start.chars();
   right.next();
 
-  let mut strs_result = vec![];
+  // let mut strs_result = vec![];
 
   while let Some(c_r) = right.next() {
-    *char_counts.entry(c_r).or_insert(0u32) += 1;
+    *char_counts.entry(c_r).or_insert(0u64) += 1;
     let c_l = left.next().unwrap();
-    let res = counts_from_bigram((c_l, c_r), depth, &rules, &mut char_counts);
-    strs_result.push(res);
+    if let Some(res) = counts_from_bigram((c_l, c_r), depth, &rules) {
+      add_values(&mut char_counts, &res);
+    }
+    // counts_from_bigram((c_l, c_r), depth, &rules, &mut char_counts);
+    // strs_result.push(res);
   }
 
-  println!("{}{}", first_char, strs_result.join(""));
+  // println!("{}{}", first_char, strs_result.join(""));
 
   return char_counts;
 }
@@ -108,20 +109,28 @@ fn counts_from_bigram_start(
 fn counts_from_bigram(
   bigram: (char, char),
   depth: u8,
-  rules: &InsertionRules,
-  char_counts: &mut HashMap<char, u32>) -> String
+  rules: &InsertionRules) -> Option<HashMap<char, u64>>
 {
   if depth == 0 {
-    return String::from(bigram.1);
+    return None;
   }
 
   let c = rules.get(&bigram).unwrap();
-  *char_counts.entry(*c).or_insert(0u32) += 1;
+  let mut char_counts = HashMap::from([(*c, 1u64)]);
 
-  let left = counts_from_bigram((bigram.0, *c), depth - 1, &rules, char_counts);
-  let right = counts_from_bigram((*c, bigram.1), depth - 1, &rules, char_counts);
+  if let Some(left) = counts_from_bigram((bigram.0, *c), depth - 1, &rules) {
+    add_values(&mut char_counts, &left);
+  }
 
-  return left + &right;
+  if let Some(right) = counts_from_bigram((*c, bigram.1), depth - 1, &rules) {
+    add_values(&mut char_counts, &right);
+  }
+
+  return Some(char_counts)
 }
 
-
+fn add_values(dest: &mut HashMap<char, u64>, src: &HashMap<char, u64>) {
+  for (key, value) in src.iter() {
+    *dest.entry(*key).or_insert(0u64) += value;
+  }
+}
