@@ -15,16 +15,53 @@ fn main() {
         }
     }
 
-    risk_grid.print(|val| (48u8 + (val as u8)) as char);
+    risk_grid.print(Box::new(|val, _| (48u8 + (val as u8)) as char));
 
-    let lowest_risk = find_min_risk_path(&risk_grid);
+    let mut lowest_path = vec![];
+    let lowest_risk = find_min_risk_path(&risk_grid, &mut lowest_path);
+
+    let print_cmd = Box::new(
+      move |val, coord| if lowest_path.contains(&coord) { (48u8 + (val as u8)) as char } else { ' ' }
+    );
+    risk_grid.print(print_cmd);
     println!("The lowest total risk path is: {}", lowest_risk);
 
     // Part 2
-    
+    let mut risk_grid_expanded = RiskGrid::new(1000,1000);
+    for y in 0..risk_grid.height {
+      for x in 0..risk_grid.width {
+        for y_off in 0..5usize {
+          for x_off in 0..5usize {
+            // Have to clamp risk values between 1 & 9. Let's use 0-8 for mod.
+            let risk = risk_grid.get_u((x, y));
+            let risk_in_offset = ((risk - 1) + y_off as u64 + x_off as u64) % 9 + 1;
+            risk_grid_expanded.set(
+              (
+                risk_grid.width * x_off + x,
+                risk_grid.height * y_off + y
+              ),
+              risk_in_offset
+            );
+          }
+        }
+      }
+    }
+
+    risk_grid_expanded.print(Box::new(|val, _| (48u8 + (val as u8)) as char));
+
+    let mut short_path_expanded = vec![];
+    let lowest_risk_expanded = find_min_risk_path(&risk_grid_expanded, &mut short_path_expanded);
+    // Welp, 2908 is too high.
+
+    let print_cmd_again = Box::new(
+      move |val, coord| if short_path_expanded.contains(&coord) { (48u8 + (val as u8)) as char } else { ' ' }
+    );
+    risk_grid_expanded.print(print_cmd_again);
+
+    println!("The lowest total risk path is: {}", lowest_risk_expanded);
 }
 
-fn find_min_risk_path(risk_grid: &RiskGrid) -> u64{
+fn find_min_risk_path(risk_grid: &RiskGrid, short_path: &mut Vec<Coord>) -> u64{
   let mut visit_queue = VecDeque::new();
   visit_queue.push_back((0,0));
 
@@ -57,6 +94,23 @@ fn find_min_risk_path(risk_grid: &RiskGrid) -> u64{
     if y + 1 < risk_grid.height {
       push_candidate((x, y+1));
     }
+  }
+
+  // Return a backtrace, too.
+  let mut backtrack = (min_grid.width - 1, min_grid.height - 1);
+  short_path.push(backtrack);
+  while backtrack != (0, 0) {
+    let (x, y) = backtrack;
+    if x > 0 && y > 0 {
+      let up = (x, y - 1);
+      let left = (x - 1, y);
+      backtrack = if min_grid.get_u(up) < min_grid.get_u(left) { up } else { left };
+    } else if x > 0 {
+      backtrack = (x - 1, y);
+    } else {
+      backtrack = (x, y - 1);
+    }
+    short_path.push(backtrack);
   }
 
   let lowest_risk = min_grid.get_u((min_grid.width - 1, min_grid.height - 1));
@@ -104,10 +158,10 @@ struct DynGrid<T> {
       *self.points.get_mut((x, y)).unwrap() = val;
     }
   
-    fn print(&self, f: fn(T) -> char) {
+    fn print(&self, f: Box<dyn Fn(T, (usize, usize)) -> char>) {
       for y in 0..self.height {
         for x in 0..self.width {
-          print!("{}", f(*self.points.get((x, y)).unwrap()));
+          print!("{}", f(*self.points.get((x, y)).unwrap(), (x, y)));
         }
         print!("\n");
       }
