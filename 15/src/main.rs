@@ -17,42 +17,50 @@ fn main() {
 
     risk_grid.print(|val| (48u8 + (val as u8)) as char);
 
-    let mut visit_queue = VecDeque::new();
-    visit_queue.push_back((0,0));
+    let lowest_risk = find_min_risk_path(&risk_grid);
+    println!("The lowest total risk path is: {}", lowest_risk);
 
-    let mut min_grid = RiskGrid::new(100, 100); // New Grid containing the minimum risks required to reach each point
-    min_grid.set((0,0), 0);
+    // Part 2
+    
+}
 
-    while let Some(curr) = visit_queue.pop_front() {
-      let (x, y) = curr;
+fn find_min_risk_path(risk_grid: &RiskGrid) -> u64{
+  let mut visit_queue = VecDeque::new();
+  visit_queue.push_back((0,0));
 
-      let mut push_candidate = |next: Coord| {
-        // The "candidate" risk is the risk of entering the next square from the current square.
-        let candidate_risk = min_grid.get_u(curr) + risk_grid.get_u(next);
+  // New Grid containing the minimum risks required to reach each point
+  let mut min_grid = RiskGrid::new(risk_grid.width, risk_grid.height);
 
-        if min_grid.get_u(next) == 0 {
-          // Not set yet. The minimum is the candidate risk. Also, we need to visit it.
-          min_grid.set(next, candidate_risk);
-          visit_queue.push_back(next);
-        } else {
-          // Already set. The minimum is the minimum of the current & candidate risks.
-          min_grid.set(next, cmp::min(candidate_risk, min_grid.get_u(next)));
-        }
-      };
+  while let Some(curr) = visit_queue.pop_front() {
+    let (x, y) = curr;
 
-      // right
-      if x + 1 < risk_grid.width {
-        push_candidate((x+1, y));
+    let mut push_candidate = |next: Coord| {
+      // The "candidate" risk is the risk of entering the next square from the current square.
+      let candidate_risk = min_grid.get_u(curr) + risk_grid.get_u(next);
+
+      if min_grid.get_u(next) == 0 {
+        // Not set yet. The minimum is the candidate risk. Also, we need to visit it.
+        min_grid.set(next, candidate_risk);
+        visit_queue.push_back(next);
+      } else {
+        // Already set. The minimum is the minimum of the current & candidate risks.
+        min_grid.set(next, cmp::min(candidate_risk, min_grid.get_u(next)));
       }
+    };
 
-      // down
-      if y + 1 < risk_grid.height {
-        push_candidate((x, y+1));
-      }
+    // right
+    if x + 1 < risk_grid.width {
+      push_candidate((x+1, y));
     }
 
-    let lowest_risk = min_grid.get_u((min_grid.width - 1, min_grid.height - 1));
-    println!("The lowest total risk path is: {}", lowest_risk);
+    // down
+    if y + 1 < risk_grid.height {
+      push_candidate((x, y+1));
+    }
+  }
+
+  let lowest_risk = min_grid.get_u((min_grid.width - 1, min_grid.height - 1));
+  return lowest_risk;
 }
 
 
