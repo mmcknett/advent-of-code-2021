@@ -1,8 +1,9 @@
 use std::io::{self, BufRead};
 use std::collections::HashMap;
-use cached::proc_macro::cached;
 
 type InsertionRules = HashMap<(char, char), char>;
+
+const STEPS: u8 = 40;
 
 fn main() {
   let mut prior_step = String::new();
@@ -11,10 +12,6 @@ fn main() {
   println!("Template:\t{}", prior_step);
 
   let mut rules: InsertionRules = HashMap::new();
-
-  // let mut bigram_list = vec![];
-  // let mut bigram_to_index: HashMap<&str, u8> = HashMap::new();
-  // let mut bigram_rules: HashMap<&str, u8> = HashMap::new();
 
   for line in io::stdin().lock().lines() {
     let linestr = line.unwrap();
@@ -37,25 +34,8 @@ fn main() {
     rules.insert(char_pair, to);
   }
 
-  // for step in 1..=10 {
-  //   let mut step_result = String::from(&prior_step[0..1]);
-  //   for i in 0..(prior_step.len() - 1) {
-  //     let twochars = String::from(&prior_step[i..=i+1]);
-  //     let insert_char = rules.get(&twochars).unwrap();
-  //     step_result.push_str(insert_char);
-  //     step_result.push_str(&twochars[1..=1]);
-  //   }
-
-  //   println!("{}\nAfter step {}: ({})", step_result, step, step_result.len());
-  //   prior_step = step_result;
-  // }
-
-  // let char_counts = prior_step.chars().fold(HashMap::new(), |mut hash, c| {
-  //   *hash.entry(c).or_insert(0u64) += 1; hash
-  // });
-
   let start = &prior_step;
-  let char_counts = counts_from_bigram_start(start, 10, &rules);
+  let char_counts = counts_from_bigram_start(start, STEPS, &rules);
 
   let max_char: (&char, &u64) = char_counts
     .iter()
@@ -75,10 +55,13 @@ fn main() {
   println!("Desired difference: {}", diff);
 }
 
+type Counts = HashMap<char, u64>;
+type CountCache = HashMap<(char, char, u8), Counts>;
+
 fn counts_from_bigram_start(
   start: &str,
   depth: u8,
-  rules: &InsertionRules) -> HashMap<char, u64>
+  rules: &InsertionRules) -> Counts
 {
   let first_char = start.chars().next().unwrap();
   let mut char_counts = HashMap::from([
@@ -89,19 +72,15 @@ fn counts_from_bigram_start(
   let mut right = start.chars();
   right.next();
 
-  // let mut strs_result = vec![];
+  let mut cache = CountCache::new();
 
   while let Some(c_r) = right.next() {
     *char_counts.entry(c_r).or_insert(0u64) += 1;
     let c_l = left.next().unwrap();
-    if let Some(res) = counts_from_bigram((c_l, c_r), depth, &rules) {
+    if let Some(res) = counts_from_bigram((c_l, c_r), depth, &rules, &mut cache) {
       add_values(&mut char_counts, &res);
     }
-    // counts_from_bigram((c_l, c_r), depth, &rules, &mut char_counts);
-    // strs_result.push(res);
   }
-
-  // println!("{}{}", first_char, strs_result.join(""));
 
   return char_counts;
 }
@@ -109,27 +88,34 @@ fn counts_from_bigram_start(
 fn counts_from_bigram(
   bigram: (char, char),
   depth: u8,
-  rules: &InsertionRules) -> Option<HashMap<char, u64>>
+  rules: &InsertionRules,
+  cache: &mut CountCache) -> Option<Counts>
 {
   if depth == 0 {
     return None;
   }
 
+  let cache_key = (bigram.0, bigram.1, depth);
+  if cache.contains_key(&cache_key) {
+    return Some(cache.get(&cache_key).unwrap().clone());
+  }
+
   let c = rules.get(&bigram).unwrap();
   let mut char_counts = HashMap::from([(*c, 1u64)]);
 
-  if let Some(left) = counts_from_bigram((bigram.0, *c), depth - 1, &rules) {
+  if let Some(left) = counts_from_bigram((bigram.0, *c), depth - 1, &rules, cache) {
     add_values(&mut char_counts, &left);
   }
 
-  if let Some(right) = counts_from_bigram((*c, bigram.1), depth - 1, &rules) {
+  if let Some(right) = counts_from_bigram((*c, bigram.1), depth - 1, &rules, cache) {
     add_values(&mut char_counts, &right);
   }
 
+  cache.insert(cache_key, char_counts.clone());
   return Some(char_counts)
 }
 
-fn add_values(dest: &mut HashMap<char, u64>, src: &HashMap<char, u64>) {
+fn add_values(dest: &mut Counts, src: &Counts) {
   for (key, value) in src.iter() {
     *dest.entry(*key).or_insert(0u64) += value;
   }
