@@ -25,7 +25,7 @@ fn main() {
     let result = packet_parser.read_packet();
 
     println!("Version sum is: {}", packet_parser.total_versions);
-    println!("Exprssion evaluates to: {}", result);
+    println!("Expression evaluates to: {}", result);
 }
 
 struct PacketParser<'a> {
