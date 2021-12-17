@@ -68,7 +68,7 @@ struct Simresult {
 }
 
 fn main() {
-    // let sample_rec = Rect::from((20, -5), (30, -10));
+    let sample_rec = Rect::from((20, -5), (30, -10));
     let input_rec = Rect::from((79, -117), (137, -176));
 
     // let rec = &sample_rec;
@@ -80,38 +80,67 @@ fn main() {
 
     // 3741 is too low.
 
-    for run in 1..=1000 {
-        let result = simulate(initial_v, rec);
-        let last = result.last;
+    #[derive(PartialEq)]
+    enum Moving {
+        Left,
+        Right
+    }
+    let mut dir = Moving::Right;
+    let mut velocities = 0;
 
-        println!("Sim {} starting {:?} landed at {:?} from height {}", run, initial_v, last, result.max_height);
+    // for run in 1..=10000 {
+    //     let result = simulate(initial_v, rec);
+    //     let last = result.last;
 
-        if rec.contains(&last) {
-            println!("Intersected!");
-            if (result.max_height >= max_height) {
-                max_height = result.max_height;
-                initial_v_of_max_height = initial_v.clone();
+    //     // println!("Sim {} starting {:?} landed at {:?} from height {}", run, initial_v, last, result.max_height);
+
+    //     if rec.contains(&last) {
+    //         // println!("Intersected!");
+    //         if result.max_height >= max_height {
+    //             max_height = result.max_height;
+    //             initial_v_of_max_height = initial_v.clone();
+    //         }
+
+    //         velocities += 1;
+
+    //         initial_v.x += if dir == Moving::Left { -1 } else { 1 };
+    //     } else if rec.leftof(&last) {
+    //         // println!("Landed right");
+    //         initial_v.x -= 1;
+    //         initial_v.y += 1;
+    //         dir = Moving::Left;
+    //     } else if rec.rightof(&last) {
+    //         // println!("Landed left");
+    //         initial_v.x += 1;
+    //         initial_v.y += 1;
+    //         dir = Moving::Right;
+    //     } else if rec.above(&last) {
+    //         // println!("Landed below");
+    //         initial_v.y += 1;
+    //     } else {
+    //         println!("....landed somewhere else??");
+    //     }
+    // }
+
+    for y in -176..=1000 {
+        for x in 1..=500 {
+            let initial_v = Vel { x, y };
+            let result = simulate(initial_v, rec);
+            let last = result.last;
+
+            if rec.contains(&last) {
+                // println!("Intersected!");
+                if result.max_height > max_height {
+                    max_height = result.max_height;
+                    initial_v_of_max_height = initial_v.clone();
+                }
+                velocities += 1;
             }
-
-            initial_v.y += 1;
-        } else if rec.leftof(&last) {
-            println!("Landed right");
-            initial_v.x -= 1;
-            initial_v.y += 1; // unsure about this
-        } else if rec.rightof(&last) {
-            println!("Landed left");
-            initial_v.x += 1;
-            // initial_v.y += 1; // unsure about this
-        } else if rec.above(&last) {
-            println!("Landed below");
-            initial_v.y += 1; // unsure about this
-            // initial_v.x += 1;
-        } else {
-            println!("....landed somewhere else??");
         }
     }
 
     println!("Max height achieved: {} using velocity {:?}", max_height, initial_v_of_max_height);
+    println!("Found a total of {} intersecting initial velocities", velocities);
 }
 
 // Returns the coordinate where the projectile lands after it's below the target range
