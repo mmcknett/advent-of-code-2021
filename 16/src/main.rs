@@ -8,7 +8,7 @@ use num_traits::{FromPrimitive};
 fn main() {
     // let buffer: Bitstream = vec![0xC, 0x2, 0x0, 0x0, 0xB, 0x4, 0x0, 0xA, 0x8, 0x2];
     let mut buffer: Bitstream = vec![];
-    io::stdin().lock().read_to_end(&mut buffer);
+    io::stdin().lock().read_to_end(&mut buffer).unwrap();
 
     buffer = buffer.iter().filter(|&&c| c != 10 && c != 13).map(|c| match *c as char {
         '0'..='9' => (c - 48),
@@ -21,9 +21,11 @@ fn main() {
         bits_consumed: 0,
         total_versions: 0
     };
-    packet_parser.read_packet();
+    
+    let result = packet_parser.read_packet();
 
     println!("Version sum is: {}", packet_parser.total_versions);
+    println!("Exprssion evaluates to: {}", result);
 }
 
 struct PacketParser<'a> {
@@ -38,15 +40,24 @@ impl<'a> PacketParser<'a> {
         self.biter.next(bit_count)
     }
 
-    fn read_packet(&mut self) {
+    fn read_packet(&mut self) -> u64 {
         let header = self.read_header();
         println!("{:?}", header);
 
-        
         if header.packet_type_id == Operator::Literal {
-            self.read_literal_body();
-        } else {
-            self.read_operator_body();
+            return self.read_literal_body();
+        }
+        
+        let values = self.read_operator_body();
+        match header.packet_type_id {
+            Operator::Sum => values.iter().fold(0, |a,b| a+b),
+            Operator::Product => values.iter().fold(1, |a,b| a*b),
+            Operator::Minimum => *values.iter().min().unwrap(),
+            Operator::Maximum => *values.iter().max().unwrap(),
+            Operator::GreaterThan => if values[0] > values[1] { 1 } else { 0 },
+            Operator::LessThan => if values[0] < values [1] { 1 } else { 0 },
+            Operator::Equals => if values[0] == values[1] { 1 } else { 0 }
+            Operator::Literal => panic!("Shouldn't be reachable")
         }
     }
 
@@ -62,32 +73,42 @@ impl<'a> PacketParser<'a> {
         };
     }
 
-    fn read_operator_body(&mut self) {
+    fn read_operator_body(&mut self) -> Vec<u64> {
+        let mut values = vec![];
+
         let length_type = self.next(1);
         if length_type == 0 {
             let subpacket_size = self.next(15) as u32;
 
             let start = self.bits_consumed;
             while subpacket_size > (self.bits_consumed - start) {
-                self.read_packet();
+                values.push(self.read_packet());
             }
         } else {
             let subpacket_count = self.next(11);
 
             for _ in 0..subpacket_count {
-                self.read_packet();
+                values.push(self.read_packet());
             }
         }
+
+        return values;
     }
 
-    fn read_literal_body(&mut self) {
+    fn read_literal_body(&mut self) -> u64 {
+        let mut result = 0u64;
         // Literals are 5-bit groups; a 1 indicates there
         // are more nibbles; a 0 indicates this is the last nibble.
         loop {
             let more = self.next(1) != 0;
-            let _ = self.next(4); // Read a nibble
+            let nibble = self.next(4); // Read a nibble
+
+            result = (result << 4) + nibble as u64;
+
             if !more { break; }
         }
+
+        return result;
     }
 }
 
