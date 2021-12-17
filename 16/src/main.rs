@@ -3,10 +3,11 @@ extern crate enum_primitive_derive;
 extern crate num_traits;
 
 use std::io::{self, Read};
-use num_traits::{FromPrimitive, ToPrimitive};
+use num_traits::{FromPrimitive};
 
 fn main() {
-    let mut buffer: Bitstream = Vec::new();
+    // let buffer: Bitstream = vec![0xC, 0x2, 0x0, 0x0, 0xB, 0x4, 0x0, 0xA, 0x8, 0x2];
+    let mut buffer: Bitstream = vec![];
     io::stdin().lock().read_to_end(&mut buffer);
 
     buffer = buffer.iter().filter(|&&c| c != 10 && c != 13).map(|c| match *c as char {
@@ -172,14 +173,18 @@ impl<'a> Biter<'a> {
             }
 
             // Consume the remaining bits
-            let nibble = self.nibble_vec[self.vec_idx];
-            result = (result << bit_count) +  match bit_count {
-                0 => { self.bit_idx = 0; 0 },
-                1 => { self.bit_idx = 3; (nibble as u16 & 0x8) >> 3 },
-                2 => { self.bit_idx = 2; (nibble as u16 & 0xC) >> 2 },
-                3 => { self.bit_idx = 1; (nibble as u16 & 0xE) >> 1 },
-                _ => panic!("This bitcount shouldn't be possible!")
-            };
+            if self.vec_idx < self.nibble_vec.len() {
+                let nibble = self.nibble_vec[self.vec_idx];
+                result = (result << bit_count) +  match bit_count {
+                    0 => { self.bit_idx = 0; 0 },
+                    1 => { self.bit_idx = 3; (nibble as u16 & 0x8) >> 3 },
+                    2 => { self.bit_idx = 2; (nibble as u16 & 0xC) >> 2 },
+                    3 => { self.bit_idx = 1; (nibble as u16 & 0xE) >> 1 },
+                    _ => panic!("This bitcount shouldn't be possible!")
+                };
+            } else if bit_count != 0 {
+                panic!("We ran out of vector, but there were still requested bits!");
+            }
         }
 
         return result;
