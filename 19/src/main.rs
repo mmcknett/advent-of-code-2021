@@ -1,9 +1,9 @@
 use std::io::{self, BufRead};
 use regex::Regex;
 use std::str::FromStr;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 
-type Scanner = HashSet<(i32, i32, i32)>;
+type Scanner = BTreeSet<(i32, i32, i32)>;
 
 fn main() {
     let mut scanners = vec![];
@@ -37,19 +37,8 @@ fn main() {
     println!("Looking over all orientations...");
 
     final_board = scanners[0].clone();
-
-    for s_idx in 1..scanners.len() {
-        let oriented_scanners = all_orientations(&scanners[s_idx]);
-        for s in oriented_scanners {
-            match find_overlap(&final_board, &s) {
-                Some((offset_scanner, offset)) => {
-                    final_board = final_board.union(&offset_scanner).cloned().collect();
-                    oriented_scanners_and_offsets.push((offset_scanner, offset));
-                    break;
-                },
-                None => ()
-            }
-        }
+    for _ in 1..=scanners.len() {
+        search(&mut final_board, &mut oriented_scanners_and_offsets, &scanners);
     }
 
     // Find all overlaps of more than 12 among the first scanner set and the rest.
@@ -60,6 +49,22 @@ fn main() {
         println!("{:?}", pt);
     }
     println!("Total beacons: {}", final_board.iter().count());
+}
+
+fn search(final_board: &mut Scanner, oriented_scanners_and_offsets: &mut Vec<(Scanner, (i32, i32, i32))>, scanners: &Vec<Scanner>) {
+    for s_idx in 1..scanners.len() {
+        let oriented_scanners = all_orientations(&scanners[s_idx]);
+        for s in oriented_scanners {
+            match find_overlap(&final_board, &s) {
+                Some((offset_scanner, offset)) => {
+                    *final_board = final_board.union(&offset_scanner).cloned().collect();
+                    oriented_scanners_and_offsets.push((offset_scanner, offset));
+                    break;
+                },
+                None => ()
+            }
+        }
+    }
 }
 
 // Generate all 24 orientations of a scanner
