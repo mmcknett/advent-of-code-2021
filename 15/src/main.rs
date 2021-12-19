@@ -53,10 +53,10 @@ fn main() {
     let lowest_risk_expanded = find_min_risk_path(&risk_grid_expanded, &mut short_path_expanded);
     // Welp, 2908 is too high.
 
-    let print_cmd_again = Box::new(
-      move |val, coord| if short_path_expanded.contains(&coord) { (48u8 + (val as u8)) as char } else { ' ' }
-    );
-    risk_grid_expanded.print(print_cmd_again);
+    // let print_cmd_again = Box::new(
+    //   move |val, coord| if short_path_expanded.contains(&coord) { (48u8 + (val as u8)) as char } else { ' ' }
+    // );
+    // risk_grid_expanded.print(print_cmd_again);
 
     println!("The lowest total risk path is: {}", lowest_risk_expanded);
 }
@@ -67,22 +67,27 @@ fn find_min_risk_path(risk_grid: &RiskGrid, short_path: &mut Vec<Coord>) -> u64{
 
   // New Grid containing the minimum risks required to reach each point
   let mut min_grid = RiskGrid::new(risk_grid.width, risk_grid.height);
+  let mut visited: DynGrid<bool> = DynGrid::new(risk_grid.width, risk_grid.height);
+
+  for y in 0..risk_grid.height {
+    for x in 0..risk_grid.width {
+      min_grid.set((x, y), if x == 0 && y == 0 { 0 } else { u64::MAX })
+    }
+  }
 
   while let Some(curr) = visit_queue.pop_front() {
+    if visited.get_u(curr) { continue };
     let (x, y) = curr;
 
     let mut push_candidate = |next: Coord| {
       // The "candidate" risk is the risk of entering the next square from the current square.
       let candidate_risk = min_grid.get_u(curr) + risk_grid.get_u(next);
-
-      if min_grid.get_u(next) == 0 {
-        // Not set yet. The minimum is the candidate risk. Also, we need to visit it.
+      if candidate_risk < min_grid.get_u(next) {
+        visited.set(next, false);
         min_grid.set(next, candidate_risk);
-        visit_queue.push_back(next);
-      } else {
-        // Already set. The minimum is the minimum of the current & candidate risks.
-        min_grid.set(next, cmp::min(candidate_risk, min_grid.get_u(next)));
       }
+
+      visit_queue.push_back(next);
     };
 
     // right
@@ -94,10 +99,23 @@ fn find_min_risk_path(risk_grid: &RiskGrid, short_path: &mut Vec<Coord>) -> u64{
     if y + 1 < risk_grid.height {
       push_candidate((x, y+1));
     }
+
+    // up
+    if x > 0 {
+      push_candidate((x-1, y));
+    }
+
+    // left
+    if y > 0 {
+      push_candidate((x, y-1));
+    }
+
+    visited.set((x,y), true);
   }
 
   // Return a backtrace, too.
   let mut backtrack = (min_grid.width - 1, min_grid.height - 1);
+  println!("{}", min_grid.get_u(backtrack));
   short_path.push(backtrack);
   while backtrack != (0, 0) {
     let (x, y) = backtrack;
@@ -110,10 +128,15 @@ fn find_min_risk_path(risk_grid: &RiskGrid, short_path: &mut Vec<Coord>) -> u64{
     } else {
       backtrack = (x, y - 1);
     }
+    println!("{}", min_grid.get_u(backtrack));
     short_path.push(backtrack);
   }
 
   let lowest_risk = min_grid.get_u((min_grid.width - 1, min_grid.height - 1));
+
+
+  // println!("The lowest total risk path is: {}", short_path);
+
   return lowest_risk;
 }
 
@@ -141,9 +164,9 @@ struct DynGrid<T> {
       *self.points.get((x, y)).unwrap()
     }
   
-    fn mut_u(&mut self, (x, y): (usize, usize)) -> &mut T {
-      self.points.get_mut((x, y)).unwrap()
-    }
+    // fn mut_u(&mut self, (x, y): (usize, usize)) -> &mut T {
+    //   self.points.get_mut((x, y)).unwrap()
+    // }
   
     fn set(&mut self, (x, y): (usize, usize), val: T) {
       self.height = cmp::max(y+1, self.height);
