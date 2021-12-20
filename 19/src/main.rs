@@ -4,7 +4,7 @@ use std::str::FromStr;
 use std::collections::BTreeSet;
 
 type Scanner = BTreeSet<(i32, i32, i32)>;
-const MIN_OVERLAPS: usize = 2;
+const MIN_OVERLAPS: usize = 4;
 
 fn main() {
     let mut scanners = vec![];
@@ -42,7 +42,7 @@ fn main() {
         let mut final_board_for_this_scanner = Scanner::new();
         search(s_idx, &scanners, &mut final_board_for_this_scanner, &mut oriented_scanners_and_offsets);
 
-        println!("Total beacons overlapping with scanner {}: {}", s_idx, final_board_for_this_scanner.iter().count());
+        println!("Total beacons shared with the overlap of scanner {}: {}", s_idx, final_board_for_this_scanner.iter().count());
 
     }
     // println!("Oriented scanners & offsets: {:?}", oriented_scanners_and_offsets);
@@ -78,7 +78,7 @@ fn search(
                     *final_board = final_board.union(&offset_scanner).cloned().collect();
                     oriented_scanners_and_offsets.push((offset_scanner, offset, (s_idx, i)));
                     println!("Scanner {} overlaps with scanner {} in orientation {} with offset {:?}", s_idx, i, o_i, offset);
-                    break;
+                    // break;
                 },
                 None => ()
             }
@@ -88,42 +88,65 @@ fn search(
 
 // Generate all 24 orientations of a scanner
 fn all_orientations(scanner: &Scanner) -> Vec<Scanner> {
-    // Rotation is like: 2, 1 -> -1, 2 -> -2, -1 -> 1, -2
     let mut oriented_scanners: Vec<Scanner> = vec![];
+    let mut curr = scanner.clone();
 
-    oriented_scanners.push(scanner.clone());
-
-    // Rotate y/z along +/- x
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-x, y, z)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-x, -z, y)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-x, -y, -z)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-x, z, -y)).collect());
-
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (x, -z, y)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (x, -y, -z)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (x, z, -y)).collect());
-
-    // Rotate x/y along +/- z
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (x, -y, z)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-z, -y, x)).collect());
-    
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (z, -y, -x)).collect());
-
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-z, y, x)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-x, y, -z)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (z, y, -x)).collect());
-
-    // Rotate x/z along +/- y
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (x, y, -z)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-y, x, -z)).collect());
-    
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (y, -x, -z)).collect());
-
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-y, x, z)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (-x, -y, z)).collect());
-    oriented_scanners.push(scanner.iter().map(|&(x, y, z)| (y, -x, z)).collect());
+    // The plan...
+    // Rot 4* around +x,
+    // Rot z,
+    // Rot 4* around +y,
+    // Rot z,
+    // Rot 4* around -x,
+    // Rot z,
+    // Rot 4* around -y
+    // Rot x,
+    // Rot 4* around +z,
+    // Rot x * 2,
+    // Rot 4* around -z
+ 
+    for _ in 0..4 {
+        curr = rotx(&curr);
+        oriented_scanners.push(curr.clone());
+    }
+    curr = rotz(&curr);
+    for _ in 0..4 {
+        curr = roty(&curr);
+        oriented_scanners.push(curr.clone());
+    }
+    curr = rotz(&curr);
+    for _ in 0..4 {
+        curr = rotx(&curr);
+        oriented_scanners.push(curr.clone());
+    }
+    curr = rotz(&curr);
+    for _ in 0..4 {
+        curr = roty(&curr);
+        oriented_scanners.push(curr.clone());
+    }
+    curr = rotx(&curr);
+    for _ in 0..4 {
+        curr = rotz(&curr);
+        oriented_scanners.push(curr.clone());
+    }
+    curr = rotx(&rotx(&curr));
+    for _ in 0..4 {
+        curr = rotz(&curr);
+        oriented_scanners.push(curr.clone());
+    }
 
     return oriented_scanners;
+}
+
+fn rotx(start: &Scanner) -> Scanner {
+    start.iter().map(|&(x, y, z)| (x, -z, y)).collect()
+}
+
+fn roty(start: &Scanner) -> Scanner {
+    start.iter().map(|&(x, y, z)| (-z, y, x)).collect()
+}
+
+fn rotz(start: &Scanner) -> Scanner {
+    start.iter().map(|&(x, y, z)| (-y, x, z)).collect()
 }
 
 fn find_overlap(target: &Scanner, candidate: &Scanner) -> Option<(Scanner, (i32, i32, i32))> {
