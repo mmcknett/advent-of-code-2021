@@ -4,6 +4,7 @@ use std::str::FromStr;
 use std::collections::BTreeSet;
 
 type Scanner = BTreeSet<(i32, i32, i32)>;
+const MIN_OVERLAPS: usize = 2;
 
 fn main() {
     let mut scanners = vec![];
@@ -37,28 +38,46 @@ fn main() {
     println!("Looking over all orientations...");
 
     final_board = scanners[0].clone();
-    for _ in 1..=scanners.len() {
-        search(&mut final_board, &mut oriented_scanners_and_offsets, &scanners);
+    for s_idx in 0..scanners.len() {
+        let mut final_board_for_this_scanner = Scanner::new();
+        search(s_idx, &scanners, &mut final_board_for_this_scanner, &mut oriented_scanners_and_offsets);
+
+        println!("Total beacons overlapping with scanner {}: {}", s_idx, final_board_for_this_scanner.iter().count());
+
     }
+    // println!("Oriented scanners & offsets: {:?}", oriented_scanners_and_offsets);
 
     // Find all overlaps of more than 12 among the first scanner set and the rest.
     // Keep track of any that still don't overlap
     // Test of those overlap with the larger set of points.
 
-    for pt in &final_board {
-        println!("{:?}", pt);
-    }
-    println!("Total beacons: {}", final_board.iter().count());
+    // for pt in &final_board {
+    //     println!("{:?}", pt);
+    // }
+    // println!("Total beacons: {}", final_board.iter().count());
 }
 
-fn search(final_board: &mut Scanner, oriented_scanners_and_offsets: &mut Vec<(Scanner, (i32, i32, i32))>, scanners: &Vec<Scanner>) {
-    for s_idx in 1..scanners.len() {
-        let oriented_scanners = all_orientations(&scanners[s_idx]);
-        for s in oriented_scanners {
-            match find_overlap(&final_board, &s) {
+// Finds all other scanners that overlap with the provided scanner
+fn search(
+    s_idx: usize,
+    scanners: &Vec<Scanner>,
+    final_board: &mut Scanner,
+    oriented_scanners_and_offsets: &mut Vec<(Scanner, (i32, i32, i32), (usize, usize))>
+) {
+    let scanner_in_question = &scanners[s_idx];
+    for i in 0..scanners.len() {
+        if i == s_idx {
+            continue;
+        }
+
+        // Try orienting each scanner to the scanner in question & finding overlap.
+        let oriented_scanners = all_orientations(&scanners[i]);
+        for (o_i, s) in oriented_scanners.iter().enumerate() {
+            match find_overlap(scanner_in_question, &s) {
                 Some((offset_scanner, offset)) => {
                     *final_board = final_board.union(&offset_scanner).cloned().collect();
-                    oriented_scanners_and_offsets.push((offset_scanner, offset));
+                    oriented_scanners_and_offsets.push((offset_scanner, offset, (s_idx, i)));
+                    println!("Scanner {} overlaps with scanner {} in orientation {} with offset {:?}", s_idx, i, o_i, offset);
                     break;
                 },
                 None => ()
@@ -124,7 +143,7 @@ fn find_overlap(target: &Scanner, candidate: &Scanner) -> Option<(Scanner, (i32,
         let offset_candidate: Scanner = candidate.iter().map(|&(x, y, z)| (x - off_x, y - off_y, z - off_z)).collect();
 
         let count = target.intersection(&offset_candidate).count();
-        if count >= 12 {
+        if count >= MIN_OVERLAPS {
             // println!("Found overlap");
             return Some((offset_candidate, offset));
         }
