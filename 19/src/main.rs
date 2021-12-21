@@ -2,6 +2,7 @@ use std::io::{self, BufRead};
 use regex::Regex;
 use std::str::FromStr;
 use std::collections::BTreeSet;
+use std::cmp;
 
 type Scanner = BTreeSet<(i32, i32, i32)>;
 const MIN_OVERLAPS: usize = 4;
@@ -58,14 +59,18 @@ fn main() {
     let mut queue = vec![0];
     final_board = scanners[0].clone();
 
+    // Scanners are lists of beacons; these are the locations of the scanners themselves.
+    let mut scanner_locations: Vec<(i32, i32, i32)> = vec![(0,0,0)];
+
     while !remaining_scanners.is_empty() {
         let cur_idx = queue.pop().unwrap();
 
         println!("Searching from {}", cur_idx);
 
         let result = search_simplified(cur_idx, &scanners, &remaining_scanners);
-        for (oriented_scanner, oriented_idx) in result {
-            println!("Found and oriented {}", oriented_idx);
+        for (oriented_scanner, oriented_idx, offset) in result {
+            println!("Found and oriented {}, which is at {:?}", oriented_idx, offset);
+            scanner_locations.push(offset);
 
             // Adjust the scanners queue so that this oriented scanner is now used instead.
             scanners[oriented_idx] = oriented_scanner.clone();
@@ -96,6 +101,21 @@ fn main() {
     // 1142 is too high.
     // 921 is too high.
     println!("Total beacons: {}", final_board.iter().count());
+
+    // Part 2
+
+    let mut max_manhattan_dist = 0;
+    for &left in &scanner_locations {
+        for &right in &scanner_locations {
+            let distance = manhattan_dist(left, right);
+            max_manhattan_dist = cmp::max(max_manhattan_dist, distance);
+        }
+    }
+    println!("Max manhattan distance is {}", max_manhattan_dist);
+}
+
+fn manhattan_dist(a: (i32, i32, i32), b: (i32, i32, i32)) -> i32 {
+    (a.0 - b.0).abs() + (a.1 - b.1).abs() + (a.2 - b.2).abs()
 }
 
 // Finds all other scanners that overlap with the provided scanner
@@ -103,9 +123,9 @@ fn search_simplified(
     s_idx: usize,
     scanners: &Vec<Scanner>,
     remaining_scanners: &BTreeSet<usize>
-) -> Vec<(Scanner, usize)>
+) -> Vec<(Scanner, usize, (i32, i32, i32))>
 {
-    let mut oriented_scanners_and_offsets: Vec<(Scanner, usize)> = vec![];
+    let mut oriented_scanners_and_offsets: Vec<(Scanner, usize, (i32, i32, i32))> = vec![];
     let scanner_in_question = &scanners[s_idx];
     for i in 0..scanners.len() {
         if !remaining_scanners.contains(&i) {
@@ -117,7 +137,7 @@ fn search_simplified(
         for s in oriented_scanners {
             match find_overlap(scanner_in_question, &s) {
                 Some((offset_scanner, offset)) => {
-                    oriented_scanners_and_offsets.push((offset_scanner, i));
+                    oriented_scanners_and_offsets.push((offset_scanner, i, offset));
                 },
                 None => ()
             }
