@@ -5,7 +5,7 @@ use std::ops;
 
 
 fn main() {
-    let (expected_on, instructions) = load_instructions();
+    let (expected_on, expect_on_p2, instructions) = load_instructions();
 
     // for i in instructions {
     //     println!("{:?}", i);
@@ -21,16 +21,29 @@ fn main() {
         println!("Expect {} illuimnated in initialization region", expected_on.unwrap());
     }
     println!("Found  {} illuminated", cube.lights_on());
+
+    println!("Part 2...");
+    if expect_on_p2.is_some() {
+        println!("Expect {} illuminated", expect_on_p2.unwrap());
 }
 
-fn load_instructions() -> (Option<u32>, Vec<Instruction>) {
+
+}
+
+fn load_instructions() -> (Option<u32>, Option<u32>, Vec<Instruction>) {
     let mut expected_on = None;
+    let mut expected_on_p2 = None;
     let mut instructions = vec![];
 
     for line in io::stdin().lock().lines() {
         match line {
             Ok(line_str) => {
-                if let Some(_) = line_str.find("expect") {
+                if let Some(_) = line_str.find("expect2") {
+                    let re = Regex::new(r"(\d+)").unwrap();
+                    let cap = re.captures_iter(&line_str).next().unwrap();
+                    expected_on_p2 = Some(u32::from_str(&cap[1]).unwrap());
+                }
+                else if let Some(_) = line_str.find("expect") {
                     let re = Regex::new(r"(\d+)").unwrap();
                     let cap = re.captures_iter(&line_str).next().unwrap();
                     expected_on = Some(u32::from_str(&cap[1]).unwrap());
@@ -51,7 +64,7 @@ fn load_instructions() -> (Option<u32>, Vec<Instruction>) {
         }
     }
 
-    return (expected_on, instructions);
+    return (expected_on, expected_on_p2, instructions);
 }
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
