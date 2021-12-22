@@ -1,18 +1,26 @@
 use std::io::{self, BufRead};
 use regex::Regex;
 use std::str::FromStr;
+use std::ops;
 
 
 fn main() {
     let (expected_on, instructions) = load_instructions();
 
-    if expected_on.is_some() {
-        println!("Expecting {} illuimnated", expected_on.unwrap());
+    // for i in instructions {
+    //     println!("{:?}", i);
+    // }
+
+    let mut cube = Cube::new();
+    for (s, i) in instructions.iter().enumerate() {
+        // println!("Step {}", s);
+        cube.run_step(&i);
     }
 
-    for i in instructions {
-        println!("{:?}", i);
+    if expected_on.is_some() {
+        println!("Expect {} illuimnated in initialization region", expected_on.unwrap());
     }
+    println!("Found  {} illuminated", cube.lights_on());
 }
 
 fn load_instructions() -> (Option<u32>, Vec<Instruction>) {
@@ -46,7 +54,7 @@ fn load_instructions() -> (Option<u32>, Vec<Instruction>) {
     return (expected_on, instructions);
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 enum Lightstate {
     On,
     Off
@@ -74,4 +82,92 @@ struct Instruction {
     x_rg: (i32, i32),
     y_rg: (i32, i32),
     z_rg: (i32, i32)
+}
+
+const LOW: i32 = -50;
+const HIGH: i32 = 50;
+const RANGE: (i32, i32) = (LOW, HIGH);
+const SIZE: usize = (HIGH - LOW + 1) as usize;
+
+struct Cube {
+    cube: [[[Lightstate; SIZE]; SIZE]; SIZE]
+}
+
+impl Cube {
+    fn new() -> Cube {
+        Cube {
+            cube: [[[Lightstate::Off; SIZE]; SIZE]; SIZE]
+        }
+    }
+
+    fn set(&mut self, light_state: Lightstate, x: i32, y: i32, z: i32) {
+        // println!("Turning {:?} ({},{},{})", light_state, x, y, z);
+        let x: usize = (x - LOW) as usize;
+        let y: usize = (y - LOW) as usize;
+        let z: usize = (z - LOW) as usize;
+        self.cube[x][y][z] = light_state;
+    }
+
+    fn run_step(&mut self, inst: &Instruction) {
+        if !self.can_apply(inst) {
+            // println!("Can't run this step");
+            return;
+        }
+
+        for x in clamp_rg(inst.x_rg) {
+            for y in clamp_rg(inst.y_rg) {
+                for z in clamp_rg(inst.z_rg) {
+                    self.set(inst.light_state, x, y, z);
+                }
+            }
+        }
+    }
+
+    fn can_apply(&self, inst: &Instruction) -> bool {
+        ranges_overlap(inst.x_rg, RANGE) &&
+        ranges_overlap(inst.y_rg, RANGE) &&
+        ranges_overlap(inst.z_rg, RANGE)
+    }
+
+    fn lights_on(&self) -> u32 {
+        let mut count = 0;
+        for x in 0..SIZE {
+            for y in 0..SIZE {
+                for z in 0..SIZE {
+                    count += match self.cube[x][y][z] {
+                        Lightstate::On => 1,
+                        Lightstate::Off => 0
+                    }
+                }
+            }
+        }
+        return count;
+    }
+}
+
+fn clamp_rg((lo, hi): (i32, i32)) -> ops::RangeInclusive<i32> {
+    let lo = num::clamp(lo, LOW, HIGH);
+    let hi = num::clamp(hi, LOW, HIGH);
+    return lo..=hi;
+}
+
+// Ranges are assumed to be (low, high)
+//
+//  |------------|
+// |--------------|
+//
+//  |------|
+//   |---|
+//
+//     |-------------|
+// |------|
+//
+//    |-----|
+// |-|
+fn ranges_overlap(rg_a: (i32, i32), rg_b: (i32, i32)) -> bool {
+    let (a_l, a_h) = rg_a;
+    let (b_l, b_h) = rg_b;
+    // Ranges overlap if the start of b comes before the end of a AND
+    // the end of b comes after the start of a.
+    return b_l <= a_h && b_h >= a_l;
 }
