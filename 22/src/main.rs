@@ -14,7 +14,7 @@ fn main() {
     // }
 
     let mut cube = Cube::new();
-    for (s, i) in instructions.iter().enumerate() {
+    for (_s, i) in instructions.iter().enumerate() {
         // println!("Step {}", s);
         cube.run_step(&i);
         // println!("Final state of Step {} lights:", s);
@@ -28,10 +28,26 @@ fn main() {
     }
     println!("Found  {} illuminated", cube.lights_on());
 
+
+
     println!("Part 2...");
-    if expect_on_p2.is_some() {
-        println!("Expect {} illuminated", expect_on_p2.unwrap());
+
+    let mut cube = Cube::new();
+    cube.initialization_mode = false; // Part 2 is the same, but with a bigger range.
+
+    for (_s, i) in instructions.iter().enumerate() {
+        // println!("Step {}", s);
+        cube.run_step(&i);
+        // println!("Final state of Step {} lights:", s);
+        // for vol in &cube.on_vols {
+        //     println!("{:?}", &vol);
+        // }
     }
+
+    if expect_on_p2.is_some() {
+        println!("Expect {} illuminated for full board", expect_on_p2.unwrap());
+    }
+    println!("Found  {} illuminated", cube.lights_on());
 }
 
 fn load_instructions() -> (Option<u32>, Option<u64>, Vec<Instruction>) {
@@ -133,13 +149,15 @@ impl Coord {
 }
 
 struct Cube {
-    on_vols: BTreeSet<LightVol>
+    on_vols: BTreeSet<LightVol>,
+    initialization_mode: bool
 }
 
 impl Cube {
     fn new() -> Cube {
         Cube {
-            on_vols: BTreeSet::new()
+            on_vols: BTreeSet::new(),
+            initialization_mode: true
         }
     }
 
@@ -149,8 +167,10 @@ impl Cube {
             return;
         }
 
-        // let inst_volume = inst.make_lightvol();
-        let inst_volume = LightVol::ranges(clamped_rg(inst.x_rg), clamped_rg(inst.y_rg), clamped_rg(inst.z_rg));
+        let inst_volume = match self.initialization_mode {
+            true => LightVol::ranges(clamped_rg(inst.x_rg), clamped_rg(inst.y_rg), clamped_rg(inst.z_rg)),
+            false => inst.make_lightvol()
+        };
         // println!("Working with volume {:?}", inst_volume);
 
         // Weird algorithm to turn on the lights:
@@ -175,7 +195,10 @@ impl Cube {
     }
 
     fn can_apply(&self, inst: &Instruction) -> bool {
-        volumes_overlap(&inst.make_lightvol(), &LightVol::ranges(RANGE, RANGE, RANGE))
+        match self.initialization_mode {
+            true => volumes_overlap(&inst.make_lightvol(), &LightVol::ranges(RANGE, RANGE, RANGE)),
+            false => true
+        }
     }
 
     fn lights_on(&self) -> u64 {
