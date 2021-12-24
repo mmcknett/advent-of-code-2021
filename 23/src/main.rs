@@ -8,41 +8,67 @@ fn main() {
     let mut hallway = load_hallway();
 
     // Debugging, set a hallway state.
-    hallway.hall[5] = 'B';
-    hallway.rooms[0].remove(0);
-    hallway.hall[7] = 'C';
-    hallway.rooms[1].remove(0);
-    hallway.hall[3] = 'D';
-    hallway.rooms[1].remove(0);
+    // hallway.hall[5] = 'B';
+    // hallway.rooms[0].remove(0);
+    // hallway.hall[7] = 'C';
+    // hallway.rooms[1].remove(0);
+    // hallway.hall[3] = 'D';
+    // hallway.rooms[1].remove(0);
 
     println!("Hallway: {}", hallway);
 
-    let min_energy = find_min_energy(hallway);
+    let mut lowest_energy_so_far = u32::MAX;
+    let min_energy = find_min_energy(&hallway, 0, &mut lowest_energy_so_far);
     println!("Lowest organization energy: {}", min_energy);
 }
 
-fn find_min_energy(hallway: Hallway) -> u32 {
+fn find_min_energy(hallway: &Hallway, cost_so_far: u32, lowest_energy_so_far: &mut u32) -> u32 {
     // The minimum energy for a solved board is 0.
     if hallway.is_final() {
-        return 0;
+        *lowest_energy_so_far = cmp::min(*lowest_energy_so_far, cost_so_far);
+        // println!("Lowest so far is {}", *lowest_energy_so_far);
+
+        return *lowest_energy_so_far;
     }
 
+    // If there isn't a final condition on any branch, we'll default to MAX.
     let mut min_energy = u32::MAX;
+    let mut min_energy_state = None;
+    let mut min_energy_cost = u32::MAX;
+
+    let mut next_possible_states = vec![];
 
     for pos in 0..hallway.hall.len() {
-        if let Some((cost, next_state)) = hallway.next_state_from_hallway(pos) {
-            println!("Cost: {}, Next state: {}", cost, next_state);
-            min_energy = cmp::min(min_energy, cost);
+        if let Some(cost_and_state) = hallway.next_state_from_hallway(pos) {
+            next_possible_states.push(cost_and_state);
         }
     }
 
     for room in 0..NUM_ROOMS {
-        let next_states = hallway.next_state_from_room(room);
-        for (cost, next_state) in next_states {
-            println!("Cost: {}, Next state: {}", cost, next_state);
-            min_energy = cmp::min(min_energy, cost);
+        let mut next_states = hallway.next_state_from_room(room);
+        next_possible_states.append(&mut next_states);
+    }
+
+    for (cost, next_state) in next_possible_states {
+        let cost_so_far_next = cost + cost_so_far;
+
+        // Ignore any branches that top the lowest energy already found.
+        if cost_so_far_next > *lowest_energy_so_far {
+            continue;
+        }
+
+        let min_energy_next = find_min_energy(&next_state, cost_so_far_next, lowest_energy_so_far);
+        if min_energy_next != u32::MAX && min_energy_next + cost < min_energy {
+            min_energy = min_energy_next;
+
+            // Bookkeeping
+            min_energy_cost = cost;
+            min_energy_state = Some(next_state)
         }
     }
+
+    // println!("Min energy: {}", min_energy);
+    // println!("Cost: {}, State: {}", min_energy_cost, if let Some(s) = min_energy_state { s.to_string() } else { String::from("") });
 
     return min_energy;
 }
@@ -116,10 +142,10 @@ impl Hallway {
                 let room_has_only_allowed_amphipods = self.rooms[room].iter().all(|&c| Self::allowed_room(c) == room);
                 
                 let start = cmp::min(entryway, pos + 1);
-                let end = cmp::max(entryway, pos - 1);
+                let end = cmp::max(entryway, if pos == 0 { 0 } else { pos - 1 }); // just avoid the underflow and hope the entryway is never at 0.
                 let not_blocked = self.hall.iter().skip(start).take(end - start).all(|&c| c == '.');
 
-                println!("only has allowed? {}; not blocked? {}", room_has_only_allowed_amphipods, not_blocked);
+                // println!("only has allowed? {}; not blocked? {}", room_has_only_allowed_amphipods, not_blocked);
 
                 if room_has_only_allowed_amphipods && not_blocked {
                     let mut next = self.clone();
@@ -139,19 +165,23 @@ impl Hallway {
     }
 
     fn next_state_from_room(&self, room: usize) -> Vec<(u32, Hallway)> {
-        if self.rooms[room].is_empty() {
+        // It can go into any hallway position that is not an entryway or
+        // blocked.
+        // It can't exit a room if it's in the right room and no wrong ones are in
+        // the room with it.
+        // Don't worry about room-to-room -- let amphipods go into the hallway,
+        // then into their room.
+        if self.rooms[room].is_empty() ||
+           self.rooms[room].iter().all(|&c| Self::allowed_room(c) == room)
+        {
             return vec![];
         }
 
-        // It can go into any hallway position that is not an entryway or
-        // blocked.
-        // Don't worry about room-to-room -- let amphipods go into the hallway,
-        // then into their room.
         let entry_pos = self.entryways[room];
         let roomsteps = (ROOM_SIZE - self.rooms[room].len()) as u32 + 1;
-
         let mut next_list = vec![];
 
+        // Remove the amphipod from the room and find a new place for it in the hallway.
         let mut next_hallway = self.clone();
         let c = next_hallway.rooms[room].remove(0);
 
@@ -160,7 +190,7 @@ impl Hallway {
             next.hall[pos] = c;
 
             let cost = Self::cost(c, roomsteps + (entry_pos as i32 - pos as i32).abs() as u32);
-            println!("Cost {} for entry {} to pos {}, roomsteps is {}", cost, entry_pos, pos, roomsteps);
+            // println!("Cost {} for entry {} to pos {}, roomsteps is {}", cost, entry_pos, pos, roomsteps);
             next_list.push((cost, next));
         };
 
