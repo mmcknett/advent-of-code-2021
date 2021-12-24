@@ -5,6 +5,12 @@ use std::fmt;
 use std::iter;
 use cached::proc_macro::cached;
 
+// Part 2
+const ROOM_SIZE: usize = 4;
+
+// Part 1
+// const ROOM_SIZE: usize = 2;
+
 fn main() {
     let mut hallway = load_hallway();
 
@@ -97,7 +103,6 @@ fn load_hallway() -> Hallway {
 
 
 const NUM_ROOMS: usize = 4;
-const ROOM_SIZE: usize = 2;
 const ENTRYWAYS: [usize; NUM_ROOMS] = [2, 4, 6, 8];
 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
@@ -117,10 +122,10 @@ impl Hallway {
     }
 
     fn is_final(&self) -> bool {
-        self.rooms[0] == ['A', 'A'] &&
-        self.rooms[1] == ['B', 'B'] &&
-        self.rooms[2] == ['C', 'C'] &&
-        self.rooms[3] == ['D', 'D']
+        self.rooms[0] == iter::repeat('A').take(ROOM_SIZE).collect::<Vec<char>>() &&
+        self.rooms[1] == iter::repeat('B').take(ROOM_SIZE).collect::<Vec<char>>()&&
+        self.rooms[2] == iter::repeat('C').take(ROOM_SIZE).collect::<Vec<char>>() &&
+        self.rooms[3] == iter::repeat('D').take(ROOM_SIZE).collect::<Vec<char>>()
     }
 
     fn next_state_from_hallway(&self, pos: usize) -> Option<(u32, Hallway)> {
