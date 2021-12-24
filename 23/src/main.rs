@@ -3,6 +3,7 @@ use regex::Regex;
 use std::cmp;
 use std::fmt;
 use std::iter;
+use cached::proc_macro::cached;
 
 fn main() {
     let mut hallway = load_hallway();
@@ -17,24 +18,22 @@ fn main() {
 
     println!("Hallway: {}", hallway);
 
-    let mut lowest_energy_so_far = u32::MAX;
-    let min_energy = find_min_energy(&hallway, 0, &mut lowest_energy_so_far);
+    // 21071 is too high (this was the lowest found after running for a while.)
+    let min_energy = find_min_energy(hallway);
     println!("Lowest organization energy: {}", min_energy);
 }
 
-fn find_min_energy(hallway: &Hallway, cost_so_far: u32, lowest_energy_so_far: &mut u32) -> u32 {
+#[cached]
+fn find_min_energy(hallway: Hallway) -> u32 {
     // The minimum energy for a solved board is 0.
     if hallway.is_final() {
-        *lowest_energy_so_far = cmp::min(*lowest_energy_so_far, cost_so_far);
-        // println!("Lowest so far is {}", *lowest_energy_so_far);
-
-        return *lowest_energy_so_far;
+        return 0;
     }
 
     // If there isn't a final condition on any branch, we'll default to MAX.
     let mut min_energy = u32::MAX;
-    let mut min_energy_state = None;
-    let mut min_energy_cost = u32::MAX;
+    // let mut min_energy_state = None;
+    // let mut min_energy_cost = u32::MAX;
 
     let mut next_possible_states = vec![];
 
@@ -50,20 +49,13 @@ fn find_min_energy(hallway: &Hallway, cost_so_far: u32, lowest_energy_so_far: &m
     }
 
     for (cost, next_state) in next_possible_states {
-        let cost_so_far_next = cost + cost_so_far;
-
-        // Ignore any branches that top the lowest energy already found.
-        if cost_so_far_next > *lowest_energy_so_far {
-            continue;
-        }
-
-        let min_energy_next = find_min_energy(&next_state, cost_so_far_next, lowest_energy_so_far);
+        let min_energy_next = find_min_energy(next_state);
         if min_energy_next != u32::MAX && min_energy_next + cost < min_energy {
-            min_energy = min_energy_next;
+            min_energy = cmp::min(min_energy_next + cost, min_energy);
 
             // Bookkeeping
-            min_energy_cost = cost;
-            min_energy_state = Some(next_state)
+            // min_energy_cost = cost;
+            // min_energy_state = Some(next_state)
         }
     }
 
@@ -108,7 +100,7 @@ const NUM_ROOMS: usize = 4;
 const ROOM_SIZE: usize = 2;
 const ENTRYWAYS: [usize; NUM_ROOMS] = [2, 4, 6, 8];
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Hash)]
 struct Hallway {
     hall: Vec<char>,
     rooms: [Vec<char>; NUM_ROOMS], // four rooms with two positions,
