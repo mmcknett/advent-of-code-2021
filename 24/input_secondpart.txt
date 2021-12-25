@@ -1,0 +1,28 @@
+inp w
+mul x 0
+add x z
+mod x 26
+div z 1
+add x 14
+eql x w
+eql x 0
+mul y 0
+add y 25
+mul y x
+add y 1
+mul z y
+mul y 0
+add y w
+add y 13
+mul y x
+add z y
+
+w: 1, x: 1, y:14, z:14
+w: 2, x: 1, y:15, z:15
+w: 3, x: 1, y:16, z:16
+w: 4, x: 1, y:17, z:17
+w: 5, x: 1, y:18, z:18
+w: 6, x: 1, y:19, z:19
+w: 7, x: 1, y:20, z:20
+w: 8, x: 1, y:21, z:21
+w: 9, x: 1, y:22, z:22

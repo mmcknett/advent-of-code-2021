@@ -1,0 +1,214 @@
+w = 0
+x = 0
+y = 0
+z = 0
+
+z_divs = [
+  1, 1, 1, 26, 1,
+  26, 26, 1, 1, 1,
+  26, 26, 26, 26
+]
+x_add = [
+  10, 14, 14, -13, 10,
+  -13, -7, 11, 10, 13,
+  -4, -9, -13, -13
+]
+y_add = [
+  2, 13, 13, 9, 15,
+  3, 6, 5, 16, 1,
+  6, 3, 7, 7
+]
+
+
+for i in 0..14:
+  w = digits[i]
+  x = (z % 26) + x_add[i]
+  z /= z_divs[i]
+  if x != w:
+    z = (26 * z) + w + y_add[i]
+
+
+
+
+combined:
+
+Step 0...
+x = 10
+z = (x != digits[0]) ? digits[0] + 2 : 0
+--> z = digits[0] + 2   # digits[0] is only in 1..=9
+
+Step 1...
+x = (3..=11) + 14
+z = (26 * 3..=11) + digits[1] + 13
+
+
+
+Unrolled...
+
+1:
+
+w = digits[i]
+x = z % 26        # 0
+z /= 1            # Needed?
+x += 10
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 2) * x   # 0 or input + 2
+z += y
+
+2:
+
+w = next_input()
+x = z % 26        # 0
+z /= 1            # Needed?
+x += 14
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 13) * x   # 0 or input + 13
+z += y
+
+3:
+
+w = next_input()
+x = z % 26        # 0
+z /= 1            # Needed?
+x += 14
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 13) * x   # 0 or input + 13
+z += y
+
+4:
+
+w = next_input()
+x = z % 26        # 0
+z /= 26
+x += -13
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 9) * x   # 0 or input + 13
+z += y
+
+5:
+
+w = next_input()
+x = z % 26        # 0
+z /= 1
+x += 10
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 15) * x   # 0 or input + 13
+z += y
+
+6:
+
+w = next_input()
+x = z % 26        # 0
+z /= 26
+x += -13
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 3) * x   # 0 or input + 13
+z += y
+
+7:
+
+w = next_input()
+x = z % 26        # 0
+z /= 26
+x += -7
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 6) * x   # 0 or input + 13
+z += y
+
+8:
+
+w = next_input()
+x = z % 26        # 0
+z /= 1
+x += 11
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 5) * x   # 0 or input + 13
+z += y
+
+9:
+
+w = next_input()
+x = z % 26        # 0
+z /= 1
+x += 10
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 16) * x   # 0 or input + 13
+z += y
+
+10: 
+
+w = next_input()
+x = z % 26        # 0
+z /= 1
+x += 13
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 1) * x   # 0 or input + 13
+z += y
+
+11:
+
+w = next_input()
+x = z % 26        # 0
+z /= 26
+x += -4
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 6) * x   # 0 or input + 13
+z += y
+
+12:
+
+w = next_input()
+x = z % 26        # 0
+z /= 26
+x += -9
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 3) * x   # 0 or input + 13
+z += y
+
+13:
+
+w = next_input()
+x = z % 26        # 0
+z /= 26
+x += -13
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 7) * x   # 0 or input + 13
+z += y
+
+14:
+
+w = next_input()
+x = z % 26        # 0
+z /= 26
+x += -13
+x = (x != w)      # 0 or 1
+y = 25 * x + 1    # 1 or 26
+z *= y
+y = (w + 7) * x   # 0 or input + 13
+z += y
