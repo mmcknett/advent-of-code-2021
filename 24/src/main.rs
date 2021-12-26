@@ -42,17 +42,33 @@ fn main() {
 fn run_part1(mut aluvm: Aluvm) {
     // Part 1 -- run MONAD to find the largest 14-digit number
     // let mut curr = 100000000000000i64; // highest 14-digit number
-    // let mut curr = 99999987172995i64; // Already check everything higher than this.
-    // while curr >= 0 {
-    //     // println!("{}", curr);
-    //     curr -= 1;
 
-    let mut curr = 11111111111111i64;
+    // let mut curr = 99999987172995i64; // Already check everything higher than this.
+
+    // let mut curr = 11111111111111i64;
+
+    // let mut curr = 99999893100000i64; // I *think* I correctly checked values higher than this, but not sure.
+    // let mut curr = 99999891951648i64;
+    let mut curr = 99999877539328i64;
     loop {
-        curr += 1;
+        // curr -= 13;
+        curr -= 1;
+        if curr < 11111111111111i64 {
+            println!("Not found.");
+            break; // None found.
+        }
 
         let input = get_as_vec(curr);
-        if input.iter().any(|&n| n == 0) {
+        if input.iter().any(|&n| n == 0) // ||
+        //    input[2] != input[3] ||
+        //    input[5] != input[4] + 2 ||
+        //    input[6] != input[5] - 4 ||
+        //    input[6] != input[3] + 2 ||
+        //    input[6] != input[1] + 6
+        {
+            // if (curr % 25 == 0) {
+            //     println!("{}", curr);
+            // }
             continue;
         }
 
@@ -64,26 +80,39 @@ fn run_part1(mut aluvm: Aluvm) {
             break;
         }
 
-        if (curr % 31 == 0) {
-            println!("{} results in {}", curr, z);
+        if (curr % 17576 == 0) {
+            println!("{} results in {:#x}", curr, z);
         }
-        if (curr % 2451) == 0 {
-            break;
-        }
+
+        // if (curr % 2451) == 0 {
+        //     break;
+        // }
     }
 
     println!("Largest MONAD-accepted model number: {}", curr);
 }
 
-fn get_as_vec(a: i64) -> Vec<i64> {
-    let mut result = vec![];
+// fn gen_vec(a: i64) -> Vec<i64> {
+//     *111377
+//     0123456
+
+//     input[2] != input[3] ||
+//     input[5] != input[4] + 2 ||
+//     input[6] != input[5] - 4 ||
+//     input[6] != input[3] + 2 ||
+//     input[6] != input[1] + 6
+// }
+
+fn get_as_vec(a: i64) -> [i64; 14] {
+    let mut result = [0; 14];
     let mut rem = a;
-    while rem > 0 {
-        result.push(rem % 10);
+    let mut i = 14;
+    while rem > 0 && i > 0 {
+        result[i - 1] = rem % 10;
         rem /= 10;
+        i -= 1;
     }
 
-    result.reverse();
     return result;
 }
 
@@ -122,7 +151,7 @@ impl Aluvm {
         }
     }
 
-    fn run_on_input(&mut self, vals: Vec<i64>) {
+    fn run_on_input(&mut self, vals: [i64; 14]) {
         let mut valiter = vals.iter();
 
         for i in &mut self.inst {
