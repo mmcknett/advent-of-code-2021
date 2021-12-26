@@ -36,7 +36,81 @@ fn main() {
     // }
 
 
-    run_part1(aluvm);
+    part_1_by_parts(aluvm);
+    // run_part1(aluvm);
+}
+
+fn part_1_by_parts(mut aluvm: Aluvm) {
+    let mut results = vec![];
+
+    const TAKE: usize = 5000;
+
+    for i in 1..=9 {
+        for i2 in 1..=9 {
+            for i3 in 1..=9 {
+                for i4 in 1..=9 {
+                    for i5 in 1..=9 {
+                        for i6 in 1..=9 {
+                            for i7 in 1..=9 {
+                                // for idx8 in 1..=9 {
+                                    //for i9 in 1..=9 {
+                                        let input = vec![i, i2, i3, i4, i5, i6, i7, idx8]; //, i9];
+                                        aluvm.reset();
+                                        match aluvm.run_on_input(&input) {
+                                            Ok(_) => (),
+                                            Err(_) => ()
+                                        };
+                                    
+                                        let z = *aluvm.vars.get("z").unwrap();
+        
+                                        results.push((z, input));
+                                    //}
+                                // }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    results.sort();
+    results = results.iter().take(TAKE).cloned().collect();
+    for (i, result) in results.iter().enumerate() {
+        println!("{}: {:?}", i, result);
+    }
+
+    // THIS ONLY DOES 13 DIGITS :facepalm:
+    while results[0].1.len() < 14 {
+        // Add another digit to the first thousand (or whatever is in TAKE) lowest,
+        // then find the lowest again.
+        let mut next_digit_results = vec![];
+
+        for (_, res_vec) in &results {
+            for i in 1..=9 {
+                let mut input = res_vec.clone();
+                input.push(i);
+
+                aluvm.reset();
+                match aluvm.run_on_input(&input) {
+                    Ok(_) => (),
+                    Err(_) => ()
+                };
+            
+                let z = *aluvm.vars.get("z").unwrap();
+
+                next_digit_results.push((z, input));
+            }
+        }
+
+        next_digit_results.sort();
+        results = next_digit_results.iter().take(TAKE).cloned().collect();
+
+        println!("\n---\n");
+        for (i, result) in results.iter().take(10).enumerate() {
+            println!("{}: {:?}", i, result);
+        }
+    }
 }
 
 fn run_part1(mut aluvm: Aluvm) {
@@ -73,14 +147,14 @@ fn run_part1(mut aluvm: Aluvm) {
         }
 
         aluvm.reset();
-        aluvm.run_on_input(get_as_vec(curr));
+        aluvm.run_on_input(&get_as_vec(curr));
 
         let z = *aluvm.vars.get("z").unwrap();
         if z == 0 {
             break;
         }
 
-        if (curr % 17576 == 0) {
+        if curr % 17576 == 0 {
             println!("{} results in {:#x}", curr, z);
         }
 
@@ -103,16 +177,17 @@ fn run_part1(mut aluvm: Aluvm) {
 //     input[6] != input[1] + 6
 // }
 
-fn get_as_vec(a: i64) -> [i64; 14] {
-    let mut result = [0; 14];
+fn get_as_vec(a: i64) -> Vec<i64> {
+    let mut result = vec![];
     let mut rem = a;
     let mut i = 14;
     while rem > 0 && i > 0 {
-        result[i - 1] = rem % 10;
+        result.push(rem % 10);
         rem /= 10;
         i -= 1;
     }
 
+    result.reverse();
     return result;
 }
 
@@ -151,18 +226,25 @@ impl Aluvm {
         }
     }
 
-    fn run_on_input(&mut self, vals: [i64; 14]) {
+    fn run_on_input(&mut self, vals: &Vec<i64>) -> Result<(), ()> {
         let mut valiter = vals.iter();
 
         for i in &mut self.inst {
-            Self::run_inst(&mut self.vars, i.clone(), &mut valiter);
+            if Self::run_inst(&mut self.vars, i.clone(), &mut valiter).is_err() {
+                return Err(());
+            }
         }
+
+        return Ok(());
     }
 
-    fn run_inst(vars: &mut Variables, i: Inst, valiter: &mut std::slice::Iter<i64>) {
+    fn run_inst(vars: &mut Variables, i: Inst, valiter: &mut std::slice::Iter<i64>) -> Result<(), ()> {
         match i {
             Inst::Inp(vname) => {
-                vars.insert(vname, *valiter.next().unwrap());
+                match valiter.next() {
+                    Some(val) => vars.insert(vname, *val),
+                    None => return Err(())
+                };
             },
             Inst::Add(vname, val) => {
                 let a = *vars.get(&vname).unwrap();
@@ -190,6 +272,8 @@ impl Aluvm {
                 vars.insert(vname, if a == b { 1 } else { 0 });
             }
         }
+
+        return Ok(());
     }
 
     fn get_val(val: Val, vars: &Variables) -> i64 {
