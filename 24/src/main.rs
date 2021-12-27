@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::io::{self, BufRead};
+use std::cmp::Ordering;
 
 fn main() {
     let mut aluvm = Aluvm::new();
@@ -35,15 +36,29 @@ fn main() {
     //     }
     // }
 
+    // let example = 13579246899999i64;
+    // aluvm.run_on_input(&get_as_vec(example));
+    // println!("For the example {}, z is {}", example, aluvm.vars.get("z").unwrap());
+    // aluvm.reset();
 
-    part_1_by_parts(aluvm);
+    let hi_so_far = 13997997296975i64;
+    aluvm.run_on_input(&get_as_vec(hi_so_far));
+    println!("");
+    aluvm.printvars();
+    println!("For the hi so far {}, z is {}", hi_so_far, aluvm.vars.get("z").unwrap());
+    aluvm.reset();
+
+    // 13997991296953 is too low!
+
+    //part_1_by_parts(aluvm);
+
     // run_part1(aluvm);
 }
 
 fn part_1_by_parts(mut aluvm: Aluvm) {
     let mut results = vec![];
 
-    const TAKE: usize = 5000;
+    const TAKE: usize = 100000;
 
     for i in 1..=9 {
         for i2 in 1..=9 {
@@ -51,10 +66,10 @@ fn part_1_by_parts(mut aluvm: Aluvm) {
                 for i4 in 1..=9 {
                     for i5 in 1..=9 {
                         for i6 in 1..=9 {
-                            for i7 in 1..=9 {
+                            // for i7 in 1..=9 {
                                 // for idx8 in 1..=9 {
                                     //for i9 in 1..=9 {
-                                        let input = vec![i, i2, i3, i4, i5, i6, i7, idx8]; //, i9];
+                                        let input = vec![i, i2, i3, i4, i5, i6]; //, i7]; //, idx8]; //, i9];
                                         aluvm.reset();
                                         match aluvm.run_on_input(&input) {
                                             Ok(_) => (),
@@ -66,7 +81,7 @@ fn part_1_by_parts(mut aluvm: Aluvm) {
                                         results.push((z, input));
                                     //}
                                 // }
-                            }
+                            // }
                         }
                     }
                 }
@@ -74,7 +89,12 @@ fn part_1_by_parts(mut aluvm: Aluvm) {
         }
     }
 
-    results.sort();
+    let sortfn = |(a_z, a_vec): &(i64, Vec<i64>), (b_z, b_vec): &(i64, Vec<i64>)| {
+        let zcmp = a_z.partial_cmp(&b_z).unwrap().then(a_vec.partial_cmp(&b_vec).unwrap().reverse());
+        return zcmp;
+    };
+
+    results.sort_by(&sortfn);
     results = results.iter().take(TAKE).cloned().collect();
     for (i, result) in results.iter().enumerate() {
         println!("{}: {:?}", i, result);
@@ -88,22 +108,31 @@ fn part_1_by_parts(mut aluvm: Aluvm) {
 
         for (_, res_vec) in &results {
             for i in 1..=9 {
-                let mut input = res_vec.clone();
-                input.push(i);
+                // for i2 in 1..=9 {
+                    // for i3 in 1..=9 {
+                    //     for i4 in 1..=9 {
+                            // for i5 in 1..=9 {
+                                let mut input = res_vec.clone();
+                                // input.append(&mut vec![i, i2]); //, i3, i4]); //, i5]);
+                                input.push(i);
 
-                aluvm.reset();
-                match aluvm.run_on_input(&input) {
-                    Ok(_) => (),
-                    Err(_) => ()
-                };
-            
-                let z = *aluvm.vars.get("z").unwrap();
+                                aluvm.reset();
+                                match aluvm.run_on_input(&input) {
+                                    Ok(_) => (),
+                                    Err(_) => ()
+                                };
+                            
+                                let z = *aluvm.vars.get("z").unwrap();
 
-                next_digit_results.push((z, input));
+                                next_digit_results.push((z, input));                                        
+                            // }
+                    //     }
+                    // }
+                // }
             }
         }
 
-        next_digit_results.sort();
+        next_digit_results.sort_by(&sortfn);
         results = next_digit_results.iter().take(TAKE).cloned().collect();
 
         println!("\n---\n");
@@ -242,7 +271,11 @@ impl Aluvm {
         match i {
             Inst::Inp(vname) => {
                 match valiter.next() {
-                    Some(val) => vars.insert(vname, *val),
+                    Some(val) => {
+                        println!("State on input {}:", val);
+                        Self::print(&vars);
+                        vars.insert(vname, *val)
+                    },
                     None => return Err(())
                 };
             },
@@ -267,6 +300,7 @@ impl Aluvm {
                 vars.insert(vname, a % b);
             },
             Inst::Eql(vname, val) => {
+                println!("x is {} on an eql operation", vars.get("x").unwrap());
                 let a = *vars.get(&vname).unwrap();
                 let b = Self::get_val(val, vars);
                 vars.insert(vname, if a == b { 1 } else { 0 });
@@ -297,11 +331,15 @@ impl Aluvm {
     }
 
     fn printvars(&self) {
+        Self::print(&self.vars);
+    }
+
+    fn print(vars: &Variables) {
         println!("w: {}, x: {}, y:{}, z:{}",
-            self.vars.get("w").unwrap(),
-            self.vars.get("x").unwrap(),
-            self.vars.get("y").unwrap(),
-            self.vars.get("z").unwrap(),
+            vars.get("w").unwrap(),
+            vars.get("x").unwrap(),
+            vars.get("y").unwrap(),
+            vars.get("z").unwrap(),
         );
     }
 }
@@ -334,3 +372,5 @@ enum Inst {
     Mod(Vname, Val),
     Eql(Vname, Val)
 }
+
+
