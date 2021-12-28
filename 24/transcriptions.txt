@@ -1,0 +1,195 @@
+x is 10, other is 1     
+x is 17, other is 3     
+x is 30, other is 9     
+x is 9, other is 9     
+x is 26, other is 7     
+x is 9, other is 9      
+x is 9, other is 9     
+x is 14, other is 7     
+x is 22, other is 2     
+x is 31, other is 9     
+x is 6, other is 6     
+x is 9, other is 9     
+x is -1, other is 7     
+x is 5, other is 5     
+D                      
+
+x is 10, other is 1       x is 10, other is 9    x is 10, other is 9
+x is 17, other is 1       x is 25, other is 9    x is 25, other is 9
+x is 28, other is 1       x is 36, other is 9    x is 36, other is 9
+x is 1, other is 1        x is 9, other is 9     x is 9, other is 1
+x is 24, other is 1       x is 32, other is 9    x is 20, other is 1
+x is 3, other is 1        x is 11, other is 9    x is 3, other is 1
+x is -3, other is 1       x is 5, other is 9     x is -3, other is 1
+x is 18, other is 1       x is 26, other is 9    x is 18, other is 1
+x is 16, other is 1       x is 24, other is 9    x is 16, other is 1
+x is 30, other is 1       x is 38, other is 9    x is 30, other is 1
+x is -2, other is 1       x is 6, other is 9     x is -2, other is 1
+x is -2, other is 1       x is 6, other is 9     x is -2, other is 1
+x is -9, other is 1       x is -1, other is 9    x is -9, other is 1
+x is -1, other is 1       x is 7, other is 9     x is -1, other is 1
+DOHGRI                    LWPOZS                 LWKHGRK
+
+x is 10, other is 9    x is 10, other is 9       x is 10, other is 9
+x is 25, other is 9    x is 25, other is 9       x is 25, other is 9
+x is 36, other is 9    x is 36, other is 9       x is 36, other is 9
+x is 9, other is 9     x is 9, other is 9        x is 9, other is 9
+x is 32, other is 9    x is 32, other is 9       x is 32, other is 9
+x is 11, other is 9    x is 11, other is 9       x is 11, other is 9
+x is 5, other is 5     x is 5, other is 5        x is 5, other is 5
+x is 33, other is 9    x is 33, other is 9       x is 33, other is 9
+x is 24, other is 9    x is 24, other is 9       x is 24, other is 9
+x is 38, other is 9    x is 38, other is 9       x is 38, other is 9
+x is 6, other is 9     x is 6, other is 6        x is 6, other is 6
+x is 6, other is 9     x is 16, other is 9       x is 16, other is 9
+x is -1, other is 9    x is -1, other is 9       x is -1, other is 9
+x is 7, other is 9     x is 7, other is 9        x is 7, other is 7
+LWOZS                  LWOS                      LWO
+
+
+x is 10, other is 9    x is 10, other is 9       x is 10, other is 9
+x is 25, other is 9    x is 25, other is 9       x is 25, other is 1
+x is 36, other is 9    x is 36, other is 9       x is 28, other is 9
+x is 9, other is 9     x is 9, other is 9        x is 9, other is 9
+x is 32, other is 9    x is 32, other is 7       x is 24, other is 7
+x is 11, other is 9    x is 9, other is 9        x is 9, other is 9
+x is 5, other is 5     x is 15, other is 1       x is 7, other is 7
+x is 33, other is 9    x is 18, other is 9       x is 22, other is 9
+x is 24, other is 9    x is 24, other is 9       x is 24, other is 9
+x is 38, other is 9    x is 38, other is 9       x is 38, other is 9
+x is 6, other is 6     x is 6, other is 6        x is 6, other is 6
+x is 16, other is 9    x is 16, other is 9       x is 16, other is 9
+x is -1, other is 1    x is -1, other is 9       x is -1, other is 9
+x is -1, other is 7    x is 7, other is 7        x is 7, other is 7
+LWOQ                   LHO                       w: 7, x: 0, y:0, z:300
+                                                 z is 300, as base26: LO
+
+                                                 Starting with 81 leads to KO
+                                                 Starting with 11 leads to DO
+                                                 No other effect on the x values.
+
+x is 10, other is 9   x is 10, other is 9       x is 10, other is 9
+x is 25, other is 3   x is 25, other is 3       x is 25, other is 3
+x is 30, other is 9   x is 30, other is 9       x is 30, other is 9
+x is 9, other is 9    x is 9, other is 9        x is 9, other is 9
+x is 26, other is 7   x is 26, other is 7       x is 26, other is 7
+x is 9, other is 9    x is 9, other is 9        x is 9, other is 9
+x is 9, other is 7    x is 9, other is 9        x is 9, other is 9
+x is 24, other is 9   x is 22, other is 9       x is 22, other is 9
+x is 24, other is 9   x is 24, other is 9       x is 24, other is 2
+x is 38, other is 9   x is 38, other is 9       x is 31, other is 9
+x is 6, other is 6    x is 6, other is 6        x is 6, other is 6
+x is 16, other is 9   x is 16, other is 9       x is 9, other is 9
+x is -1, other is 9   x is -1, other is 9       x is 1, other is 9
+x is 7, other is 7    x is 7, other is 7        x is 7, other is 7
+z:7788                z:300                     z:11
+base26: LNO           LO                        L
+
+
+x is 10, other is 9
+x is 25, other is 3
+x is 30, other is 9
+x is 9, other is 9
+x is 26, other is 7
+x is 9, other is 9
+x is 9, other is 9
+x is 22, other is 9
+x is 24, other is 2
+x is 31, other is 9
+x is 6, other is 6
+x is 9, other is 9
+x is 1, other is 1
+x is 2, other is 2
+
+w: 2, x: 0, y:0, z:0
+For the hi so far 93997999296912, z is 0, as base26: 
+^ this is the part1 answer!
+
+
+x is 10, other is 1   x is 10, other is 1     x is 10, other is 1
+x is 17, other is 1   x is 17, other is 1     x is 17, other is 1
+x is 28, other is 1   x is 28, other is 1     x is 28, other is 1
+x is 1, other is 1    x is 1, other is 1      x is 1, other is 1
+x is 24, other is 1   x is 24, other is 1     x is 24, other is 1
+x is 3, other is 1    x is 3, other is 3      x is 3, other is 3
+x is -3, other is 1   x is 7, other is 7      x is 7, other is 7
+x is 18, other is 1   x is 14, other is 1     x is 14, other is 1
+x is 16, other is 1   x is 16, other is 1     x is 16, other is 1
+x is 30, other is 1   x is 30, other is 1     x is 30, other is 4
+x is -2, other is 1   x is -2, other is 1     x is 1, other is 1
+x is -2, other is 1   x is -2, other is 1     x is 8, other is 1
+x is -9, other is 1   x is -9, other is 1     x is -9, other is 1
+x is -1, other is 1   x is -1, other is 1     x is -1, other is 1
+DOHGRI                DGRK                    DGK
+
+x is 10, other is 1   x is 10, other is 1     x is 10, other is 1
+x is 17, other is 1   x is 17, other is 1     x is 17, other is 1
+x is 28, other is 1   x is 28, other is 1     x is 28, other is 1
+x is 1, other is 1    x is 1, other is 1      x is 1, other is 1
+x is 24, other is 1   x is 24, other is 1     x is 24, other is 1
+x is 3, other is 3    x is 3, other is 3      x is 3, other is 3
+x is 7, other is 7    x is 7, other is 7      x is 7, other is 7
+x is 14, other is 1   x is 14, other is 1     x is 14, other is 1
+x is 16, other is 1   x is 16, other is 1     x is 16, other is 2
+x is 30, other is 4   x is 30, other is 4     x is 31, other is 4
+x is 1, other is 1    x is 1, other is 1      x is 1, other is 1
+x is 8, other is 8    x is 8, other is 6      x is 9, other is 9
+x is -7, other is 1   x is -4, other is 4     x is -7, other is 4
+x is -1, other is 1   x is 2, other is 2      x is 2, other is 2
+DK                    DG                      D
+
+x is 10, other is 1   x is 10, other is 1     x is 10, other is 8
+x is 17, other is 1   x is 17, other is 1     x is 24, other is 1
+x is 28, other is 1   x is 28, other is 1     x is 28, other is 1
+x is 1, other is 1    x is 1, other is 1      x is 1, other is 1
+x is 24, other is 1   x is 24, other is 1     x is 24, other is 1
+x is 3, other is 3    x is 3, other is 3      x is 3, other is 3
+x is 7, other is 7    x is 7, other is 7      x is 7, other is 7
+x is 14, other is 9   x is 14, other is 9     x is 21, other is 9
+x is 24, other is 2   x is 24, other is 2     x is 24, other is 2
+x is 31, other is 4   x is 31, other is 4     x is 31, other is 4
+x is 1, other is 1    x is 1, other is 1      x is 1, other is 1
+x is 9, other is 9    x is 9, other is 9      x is 9, other is 9
+x is 1, other is 4    x is 1, other is 1      x is 1, other is 1
+x is 2, other is 2    x is -6, other is 1     x is 1, other is 1
+D                     
+          -----------------------------------------------------^
+          ^-- Changing the first digit can get rid of the remaining z.
+                          But this is a big number. :( It's too high.
+                          81111111111111 is too low though, so it starts
+                          with 8!
+
+x is 10, other is 1   x is 10, other is 1      1
+x is 17, other is 2   x is 17, other is 2     1
+x is 29, other is 1   x is 29, other is 1     1
+x is 1, other is 1    x is 1, other is 1      26
+x is 25, other is 1   x is 25, other is 1     1
+x is 3, other is 3    x is 3, other is 3      26
+x is 8, other is 7    x is 8, other is 8      26
+x is 24, other is 9   x is 14, other is 9     1
+x is 24, other is 2   x is 24, other is 2     1
+x is 31, other is 4   x is 31, other is 4     1
+x is 1, other is 1    x is 1, other is 1      26
+x is 9, other is 9    x is 9, other is 9      26
+x is 1, other is 1    x is 1, other is 1      26
+x is 4, other is 1    x is -6, other is 4     26
+DK                    N
+^-- Changing the second digit is more promising, but not a guarantee.
+
+x is 10, other is 1   x is 10, other is 1
+x is 17, other is 1   x is 17, other is 1
+x is 28, other is 1   x is 28, other is 1
+x is 1, other is 1    x is 1, other is 1
+x is 24, other is 7   x is 24, other is 5
+x is 9, other is 9    x is 7, other is 7
+x is 7, other is 7    x is 7, other is 7
+x is 14, other is 9   x is 14, other is 9
+x is 24, other is 2   x is 24, other is 2
+x is 31, other is 4   x is 31, other is 4
+x is 1, other is 1    x is 1, other is 1
+x is 9, other is 9    x is 9, other is 9
+x is 1, other is 1    x is 1, other is 1
+x is -6, other is 1   x is -6, other is 1
+K                     K
+
+I brute-force searched to find 81111379141811.

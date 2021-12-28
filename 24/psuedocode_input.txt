@@ -19,16 +19,22 @@ z_divs = [
   26, 26, 26, 26
 ]
 
+z = BCD...H # Z can be thought of as a 14-digit base-26 number.
 
 for i in 0..14:
-  w = digits[i]
-  x = (z % 26) + x_add[i]
-  z /= z_divs[i]
-  if x != w:
-    z = (26 * z) + w + y_add[i]
+  x = (z % 26) + x_add[i]  # lowest letter in z + an offset
+  z /= z_divs[i]  # Remove the lowest letter sometimes
+  if x != digits[i]:
+    z = (26 * z) + digits[i] + y_add[i]
 
 
+# most times through...
+x = digits[i-1] + y_add[i-1] + x_add[i]
 
+xs @ i...    14, 14, -13, 10, -13, -7, 11, 10, 13, -4, -9, -13, -9
+ys @ i-1...   2, 13, 13,   9,  15,  3,  6,  5, 16,  1,  6,   3,  7, 9
+1..13    10, 16, 27,   0, 19,   2, -4, 17, 15, 29, -3, -3, -10, -2
+                       ^        ^   ^               ^   ^        ^
 
 combined:
 
@@ -270,9 +276,9 @@ z += y
 w = next_input()
 x = z % 26        # 0
 z /= 26
-x += -13
+x += -9
 x = (x != w)      # 0 or 1
 y = 25 * x + 1    # 1 or 26
 z *= y
-y = (w + 7) * x   # 0 or input + 13
+y = (w + 9) * x   # 0 or input + 13
 z += y
